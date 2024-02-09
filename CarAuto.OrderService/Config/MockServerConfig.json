@@ -1,6 +1,0 @@
-{
-  "MockServer": {
-    "MockEnabled": false,
-    "MockBaseUrl": "http://host.docker.internal:3000"
-  }
-}

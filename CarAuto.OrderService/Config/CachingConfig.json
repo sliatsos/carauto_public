@@ -1,8 +1,0 @@
-{
-  "Redis": {
-    "Host": "redis",
-    "Port": "6379",
-    "Instance": "**Orders**",
-    "Password": ""
-  }
-}

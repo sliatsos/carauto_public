@@ -1,5 +1,0 @@
-{
-  "CorrelationConfig": {
-    "ExcludePaths": [ "/health", "/metrics" ]
-  }
-}

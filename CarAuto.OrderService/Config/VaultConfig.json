@@ -1,7 +1,0 @@
-{
-  "Vault": {
-    "Token": "s.3SHwsWUJuB1wyqsjYheHhILt",
-    "Url": "http://vault:8200/",
-    "MountPoint": "secret"
-  }
-}

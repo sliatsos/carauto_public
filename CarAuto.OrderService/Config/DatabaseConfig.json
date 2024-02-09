@@ -1,5 +1,0 @@
-{
-  "ConnectionStrings": {
-    "Database": "Server=orderservicedb;Port=5432;Database=orderdb;User Id=postgres"
-  }
-}
