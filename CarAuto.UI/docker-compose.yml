@@ -1,0 +1,16 @@
+version: '3.4'
+
+services:
+  carauto.ui:
+    image: ${DOCKER_REGISTRY-}carautoui
+    ports:
+    - 5002:443
+    - 5182:80
+    build:
+      context: .
+      dockerfile: CarAuto.UI/Dockerfile
+
+networks:
+  default:
+    external:
+      name: carauto-network

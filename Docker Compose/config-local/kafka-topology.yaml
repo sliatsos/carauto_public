@@ -1,0 +1,28 @@
+context: "dev"
+projects:
+- name: "general" 
+  topics:    
+    - name: "logcreation.elasticsearchLogobject.v1.json"                
+      config:
+        replication.factor: "1"
+        num.partitions: "1"    
+    - name: "datasync.json"                
+      config:
+        replication.factor: "1"
+        num.partitions: "1"    
+    - name: "datasync.erp.json"                
+      config:
+        replication.factor: "1"
+        num.partitions: "1"
+    - name: "general.orders.json"
+      config:      
+        replication.factor: "1"
+        num.partitions: "1"
+    - name: "orders.erp.json"
+      config:      
+        replication.factor: "1"
+        num.partitions: "1"
+    - name: "vehicles.json"
+      config:      
+        replication.factor: "1"
+        num.partitions: "1"                                 

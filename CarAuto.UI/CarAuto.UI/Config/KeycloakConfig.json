@@ -1,0 +1,19 @@
+﻿{
+  "Keycloak": {
+    "DiscoveryServiceUrl": "http://keycloak:7070/auth/realms/{realm}/.well-known/openid-configuration",
+    "KeyCloakRealm": "CarAuto",
+    "KeyCloakAdminUser": "admin",
+    "KeyCloakAdminUserPassword": "admin",
+    "realm": "CarAuto",
+    "auth-server-url": "http://keycloak:7070/auth/",
+    "ssl-required": "none",
+    "resource": "carauto-client",
+    "verify-token-audience": false,
+    "credentials": {
+      "secret": "YgHdRsSJ5SXUpUfFuurAeFFfG2mwP6dy"
+    },
+    "use-resource-role-mappings": true,
+    "confidential-port": 0,
+    "policy-enforcer": {}
+  }
+}

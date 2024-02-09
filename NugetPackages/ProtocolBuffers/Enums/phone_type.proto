@@ -1,0 +1,9 @@
+﻿syntax = "proto3";
+package CarAuto.Enums;
+option csharp_namespace = "CarAuto.Protos.Enums";
+
+enum PhoneType {
+    MOBILE = 0;
+    HOME = 1;
+    WORK = 2;
+}

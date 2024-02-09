@@ -1,0 +1,50 @@
+syntax = "proto3";
+package CarAuto.Vehicle;
+option csharp_namespace = "CarAuto.Protos.Vehicle";
+
+import "Vehicle/vehicle.proto";
+import "google/protobuf/empty.proto";
+
+message CreateBrandRequest
+{
+    Brand brand = 1;
+}
+
+message CreateBrandResponse
+{
+    string id = 1;
+}
+
+message UpdateBrandRequest
+{
+    Brand brand = 1;
+}
+
+message GetBrandRequest
+{
+    string id = 1;
+}
+
+message GetBrandResponse
+{
+    Brand brand = 1;
+}
+
+message DeleteBrandRequest
+{
+    string id = 1;
+}
+
+message GetAllBrandsResponse
+{
+    repeated Brand brands = 1;
+}
+
+service BrandService
+{
+    rpc CreateBrand (CreateBrandRequest) returns (CreateBrandResponse);
+    rpc UpdateBrand (UpdateBrandRequest) returns (google.protobuf.Empty);
+    rpc GetBrand (GetBrandRequest) returns (GetBrandResponse);
+    rpc DeleteBrand (DeleteBrandRequest) returns (google.protobuf.Empty);
+    rpc GetAllBrands (google.protobuf.Empty) returns (GetAllBrandsResponse);
+}

@@ -1,0 +1,139 @@
+﻿@page "/manageBrand/{Brandid?}"
+@attribute [Authorize(Policy = "IsAdmin")]
+@using CarAuto.Protos.Vehicle;
+@using CarAuto.UI.Validators
+@using CarAuto.GrpcClientWrapper
+@using CarAuto.Protos.Customer
+@using CarAuto.Protos.Enums
+@using CarAuto.Protos.User
+@using Google.Protobuf.WellKnownTypes
+@using Grpc.Core
+@inject NavigationManager NavigationManager
+@inject IGrpcClientWrapper GrpcClientWrapper
+
+<MudForm @bind-IsValid="@_success" Model="@_model">
+    <MudExpansionPanels DisableBorders="true" MultiExpansion="false">
+        <MudExpansionPanel Text="General" IsInitiallyExpanded="true">
+            <MudStack Spacing="3">
+                <MudStack Spacing="3" Row="true">
+                    <MudAvatar Size="Size.Large" Rounded="true" Image="@_image"></MudAvatar>
+                    <MudFileUpload T="IBrowserFile" FilesChanged="HandleFileChangedAsync">
+                        <ButtonTemplate>
+                            <MudIconButton HtmlTag="label"
+                                           Color="Color.Info"
+                                           Icon="@Icons.Material.Filled.PhotoCamera"
+                                           for="@context"></MudIconButton>
+                        </ButtonTemplate>
+                    </MudFileUpload>
+                </MudStack>
+
+                <MudStack Row="true" Spacing="3">
+                    <MudStack Spacing="3">
+                        <MudTextField T="string" @bind-Value="@_model.Code" Label="Code" Required="true" RequiredError="Code is required!" />
+                        <MudTextField T="string" @bind-Value="@_model.DisplayName" Label="Display Name" Required="true" RequiredError="Display Name is required!" />
+                    </MudStack>
+                </MudStack>
+            </MudStack>
+        </MudExpansionPanel>
+    </MudExpansionPanels>
+        <div class="d-flex align-center justify-space-between">
+            <MudButton Variant="Variant.Filled"
+                   Style="@GetRegistrationVisibility"
+                   Color="Color.Primary"
+                   Disabled="@(!_success)"
+                   Class="ml-auto"
+                   OnClick="OnRegisterAsync">Register</MudButton>
+            <MudButton Variant="Variant.Filled"
+                   Style="@GetUpdateVisibility"
+                   Color="Color.Primary"
+                   Disabled="@(!_success)"
+                   Class="ml-auto"
+                   OnClick="OnUpdateAsync">Update</MudButton>
+        </div>
+    </MudForm>
+
+@code {
+    private string _image;
+    private bool _success;
+    private EmailValidator _emailValidator = new();
+    private Brand _model = new();
+    private User _initialUser { get; set; }
+
+    [Parameter] public string? BrandId { get; set; }
+
+    private string GetRegistrationVisibility => BrandId != null ? "display: none" : string.Empty;
+    private string GetUpdateVisibility => BrandId == null ? "display: none" : string.Empty;
+
+    private async Task OnUpdateAsync()
+    {
+        await GrpcClientWrapper.CallGrpcServiceAsync<BrandService.BrandServiceClient, UpdateBrandRequest, Empty>(
+            new UpdateBrandRequest
+                {
+                    Brand = _model,
+                },
+            nameof(BrandService.BrandServiceClient.UpdateBrand),
+            new Metadata());
+
+        NavigationManager.NavigateTo(nameof(Brands), true);
+    }
+
+    private async Task OnRegisterAsync()
+    {
+        await GrpcClientWrapper.CallGrpcServiceAsync<BrandService.BrandServiceClient, CreateBrandRequest, CreateBrandResponse>(
+            new CreateBrandRequest
+                {
+                    Brand = _model,
+                },
+            nameof(BrandService.BrandServiceClient.CreateBrand),
+            new Metadata());
+
+        NavigationManager.NavigateTo(nameof(Brands), true);
+    }
+
+    private async Task<User> GetUserAsync(string id)
+    {
+        var userResponse =
+            await GrpcClientWrapper.CallGrpcServiceAsync<UserService.UserServiceClient, GetUserRequest, GetUserResponse>(
+                new GetUserRequest
+                {
+                    Id = id,
+                },
+                nameof(UserService.UserServiceBase.GetUser),
+                new Metadata());
+
+        return userResponse.User;
+    }
+
+    private async Task HandleFileChangedAsync(IBrowserFile file)
+    {
+        var resizedImageFile = await file.RequestImageFileAsync("image/jpg",
+            200, 200);
+        var buffer = new byte[resizedImageFile.Size];
+        await resizedImageFile.OpenReadStream().ReadAsync(buffer);
+        //_model.Image = Convert.ToBase64String(buffer);
+
+        //_image = $"data:image/jpeg;base64,{_model.Image}";
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await base.OnParametersSetAsync();
+
+        if (BrandId == null)
+        {
+            return;
+        }
+
+        var response = await GrpcClientWrapper.CallGrpcServiceAsync<BrandService.BrandServiceClient, GetBrandRequest, GetBrandResponse>(
+            new GetBrandRequest
+                {
+                    Id = BrandId,
+                },
+            nameof(BrandService.BrandServiceClient.GetBrand),
+            new Metadata());
+
+        //_image = $"data:image/jpeg;base64,{response.Brand.Image}";
+        _model = response.Brand;
+        _success = true;
+    }
+}

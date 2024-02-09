@@ -1,0 +1,52 @@
+﻿@using System.Net
+@using CarAuto.GrpcClientWrapper
+@using CarAuto.Protos.Order
+@using CarAuto.UI.Models
+@using Google.Protobuf.WellKnownTypes
+@using Grpc.Core
+
+<div style="height:1000px">
+    <iframe src="data:application/pdf;base64,@(_data)" type="application/pdf" width="1000" height="1000"></iframe>
+</div>
+
+
+@code {
+    [CascadingParameter]
+    protected internal OrderModel _model { get; set; }
+    [Inject]
+    private IGrpcClientWrapper _grpcClientWrapper { get; set; }
+    private string _data;
+
+    private async Task<string> GetPdfFromOrderIdAsync(string orderId)
+    {
+        var order = await GetOrderByIdAsync(orderId);
+        return order.Pdf;
+    }
+
+    protected override void OnParametersSet()
+    {
+        Task.Run(async () =>
+        {
+            _data = await GetPdfFromOrderIdAsync(_model.Id);
+            await InvokeAsync(() =>
+            {
+                base.StateHasChanged();
+            });
+        });
+    }
+
+    private async Task<Order> GetOrderByIdAsync(string orderId)
+    {
+        if (string.IsNullOrEmpty(_model.Id))
+        {
+            return new Order();
+        }
+
+        var userOrders = await _grpcClientWrapper.CallGrpcServiceAsync<OrderService.OrderServiceClient, Empty, GetUserOrdersResponse>(
+            new Empty(),
+            nameof(OrderService.OrderServiceClient.GetUserOrders),
+            new Metadata());
+
+        return userOrders.Orders.FirstOrDefault(e => e.Id == orderId);
+    }
+}

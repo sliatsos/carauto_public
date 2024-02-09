@@ -1,0 +1,7 @@
+{
+  "Number": {
+    "Initial": "SQ-00000",
+    "IncrementBy": "1",
+    "FixedPart": "SQ-"
+  }
+}

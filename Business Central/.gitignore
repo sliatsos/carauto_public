@@ -1,0 +1,7 @@
+**/Translations/*.g.xlf
+**/.vscode/rad.json
+**/.vscode/.alcache
+**/.vscode/.altemplates
+**/.alpackages
+**/.snapshots
+*.app

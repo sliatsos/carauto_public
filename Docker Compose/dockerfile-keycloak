@@ -1,0 +1,25 @@
+FROM jboss/keycloak:16.1.1
+
+## add json remote claim plugin https://github.com/groupe-sii/keycloak-json-remote-claim
+ADD ./keycloak-plugins/json-remote-claim/changeprovider.xsl /opt/jboss/keycloak/json-remote-claim/
+ADD ./keycloak-plugins/json-remote-claim/changeprovider_dev.xsl /opt/jboss/keycloak/json-remote-claim/
+ADD ./keycloak-plugins/json-remote-claim/saxon-9.1.0.8.jar /opt/jboss/keycloak/json-remote-claim/
+ADD ./config-local/keycloak-realm-seed.json /tmp/keycloak-realm-seed.json
+
+ARG USE_PROXY
+RUN if [ "$USE_PROXY" = "TRUE" ]; then \
+    RUN java -jar /opt/jboss/keycloak/json-remote-claim/saxon-9.1.0.8.jar -s:/opt/jboss/keycloak/standalone/configuration/standalone.xml -xsl:/opt/jboss/keycloak/json-remote-claim/changeprovider_dev.xsl -o:/opt/jboss/keycloak/standalone/configuration/standalone.xml; \
+	    java -jar /opt/jboss/keycloak/json-remote-claim/saxon-9.1.0.8.jar -s:/opt/jboss/keycloak/standalone/configuration/standalone-ha.xml -xsl:/opt/jboss/keycloak/json-remote-claim/changeprovider_dev.xsl -o:/opt/jboss/keycloak/standalone/configuration/standalone-ha.xml; \
+   else \
+    RUN java -jar /opt/jboss/keycloak/json-remote-claim/saxon-9.1.0.8.jar -s:/opt/jboss/keycloak/standalone/configuration/standalone.xml -xsl:/opt/jboss/keycloak/json-remote-claim/changeprovider.xsl -o:/opt/jboss/keycloak/standalone/configuration/standalone.xml; \
+	    java -jar /opt/jboss/keycloak/json-remote-claim/saxon-9.1.0.8.jar -s:/opt/jboss/keycloak/standalone/configuration/standalone-ha.xml -xsl:/opt/jboss/keycloak/json-remote-claim/changeprovider.xsl -o:/opt/jboss/keycloak/standalone/configuration/standalone-ha.xml; \  
+     fi
+
+RUN mkdir -p /opt/jboss/keycloak/modules/system/layers/base/fr/sii/keycloak/mapper/json-remote-claim/main/
+
+ADD ./keycloak-plugins/json-remote-claim/json-remote-claim.jar /opt/jboss/keycloak/modules/system/layers/base/fr/sii/keycloak/mapper/json-remote-claim/main/
+ADD ./keycloak-plugins/json-remote-claim/module.xml /opt/jboss/keycloak/modules/system/layers/base/fr/sii/keycloak/mapper/json-remote-claim/main/
+
+ADD ./custom-keycloak-entrypoint.sh /opt/jboss/tools/custom-keycloak-entrypoint.sh
+ENV KEYCLOAK_IMPORT /tmp/keycloak-realm-seed.json
+ENTRYPOINT [ "/opt/jboss/tools/custom-keycloak-entrypoint.sh" ]

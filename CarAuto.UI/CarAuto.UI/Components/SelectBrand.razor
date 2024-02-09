@@ -1,0 +1,56 @@
+﻿@using CarAuto.Protos.User
+@using CarAuto.GrpcClientWrapper
+@using CarAuto.Protos.Vehicle;
+@using Google.Protobuf.Collections
+@using Google.Protobuf.WellKnownTypes
+@using Grpc.Core
+
+<MudSelect T="Brand" SelectedValues="_selectedBrands" SelectedValuesChanged="SelectedBrandChangedAsync" Label="Brand">
+    @foreach (var brand in GetBrands())
+    {
+        <MudSelectItem T="Brand" Value="@(brand)">@($"{brand.DisplayName}")</MudSelectItem>
+    }
+</MudSelect>
+
+@code {
+    [Parameter] public EventCallback<Brand> SelectedValueChanged { get; set; }
+    [Parameter] public Brand InitialValue { get; set; }
+    [Inject] private IGrpcClientWrapper _grpcClientWrapper { get; set; }
+    private List<Brand> _selectedBrands = new();
+
+    protected override Task OnInitializedAsync()
+    {
+        _selectedBrands.Add(InitialValue);
+        return base.OnInitializedAsync();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await base.OnParametersSetAsync();
+    }
+
+    private RepeatedField<Brand> GetBrands()
+    {
+        var allBrandsResponse =
+            _grpcClientWrapper.CallGrpcService<BrandService.BrandServiceClient, Empty, GetAllBrandsResponse>(
+                new Empty(),
+                nameof(BrandService.BrandServiceClient.GetAllBrands),
+                new Metadata());
+
+        return allBrandsResponse.Brands;
+    }
+
+    private async Task SelectedBrandChangedAsync(IEnumerable<Brand> selectedBrands)
+    {
+        _selectedBrands.Clear();
+        foreach (var selectedType in selectedBrands)
+        {
+            _selectedBrands.Add(selectedType);
+        }
+        var brand = _selectedBrands.FirstOrDefault();
+        if (brand != null)
+        {
+            await SelectedValueChanged.InvokeAsync(brand);
+        }
+    }
+}

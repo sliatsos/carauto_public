@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <PackageOutputPath>$(SolutionDir)\LocalPublish\</PackageOutputPath>
+    <VersionPrefix>1.0.77</VersionPrefix>
+    <Version>1.0.77</Version>
+    <FileVersion>1.0.77</FileVersion>
+    <AssemblyVersion>1.0.77</AssemblyVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="12.0.0" />
+    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.0" />
+    <PackageReference Include="CorrelationId" Version="3.0.1" />
+    <PackageReference Include="EFCore.NamingConventions" Version="6.0.0" />
+    <PackageReference Include="Grpc.AspNetCore" Version="2.50.0" />
+    <PackageReference Include="Grpc.AspNetCore.Server.Reflection" Version="2.50.0" />
+    <PackageReference Include="Grpc.AspNetCore.Web" Version="2.51.0" />
+    <PackageReference Include="Grpc.Core" Version="2.46.5" />
+    <PackageReference Include="Keycloak.AuthServices.Authentication" Version="1.5.1" />
+    <PackageReference Include="Keycloak.AuthServices.Authorization" Version="1.5.1" />
+    <PackageReference Include="Keycloak.AuthServices.Sdk" Version="1.5.1" />
+    <PackageReference Include="Microsoft.AspNetCore.HeaderPropagation" Version="6.0.12" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.12" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="6.0.0" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="6.0.8" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CarAuto.Caching\CarAuto.Caching.csproj" />
+    <ProjectReference Include="..\CarAuto.ClaimParser\CarAuto.ClaimParser.csproj" />
+    <ProjectReference Include="..\CarAuto.EFCore.BaseEntity\CarAuto.EFCore.BaseEntity.csproj" />
+    <ProjectReference Include="..\CarAuto.ExceptionInterceptor\CarAuto.ExceptionInterceptor.csproj" />
+    <ProjectReference Include="..\CarAuto.Kafka\CarAuto.Kafka.csproj" />
+    <ProjectReference Include="..\CarAuto.Logger\CarAuto.Logger.csproj" />
+    <ProjectReference Include="..\Kong\CarAuto.Kong.csproj" />
+  </ItemGroup>
+
+</Project>

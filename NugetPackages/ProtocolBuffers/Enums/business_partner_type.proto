@@ -1,0 +1,9 @@
+﻿syntax = "proto3";
+package CarAuto.Enums;
+option csharp_namespace = "CarAuto.Protos.Enums";
+
+enum BusinessPartnerType
+{
+    BUSINESS_PARTNER_TYPE_UNSPECIFIED = 0;
+    BUSINESS_PARTNER_TYPE_CUSTOMER = 1;
+}

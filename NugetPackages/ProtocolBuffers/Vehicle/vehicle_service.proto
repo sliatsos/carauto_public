@@ -1,0 +1,61 @@
+syntax = "proto3";
+package CarAuto.Vehicle;
+option csharp_namespace = "CarAuto.Protos.Vehicle";
+
+import "Vehicle/vehicle.proto";
+import "google/protobuf/empty.proto";
+
+message CreateVehicleRequest
+{
+    Vehicle vehicle = 1;
+}
+
+message CreateVehicleResponse
+{
+    string id = 1;
+}
+
+message UpdateVehicleRequest
+{
+    Vehicle vehicle = 1;
+}
+
+message GetVehicleRequest
+{
+    string id = 1;
+}
+
+message GetVehicleResponse
+{
+    Vehicle vehicle = 1;
+}
+
+message DeleteVehicleRequest
+{
+    string id = 1;
+}
+
+message SearchVehiclesRequest
+{
+    Vehicle vehicle = 1;
+}
+
+message SearchVehiclesResponse
+{
+    repeated Vehicle vehicles = 1;
+}
+
+message GetAllVehiclesResponse
+{
+    repeated Vehicle vehicles = 1;
+}
+
+service VehicleService
+{
+    rpc CreateVehicle (CreateVehicleRequest) returns (CreateVehicleResponse);
+    rpc UpdateVehicle (UpdateVehicleRequest) returns (google.protobuf.Empty);
+    rpc GetVehicle (GetVehicleRequest) returns (GetVehicleResponse);
+    rpc DeleteVehicle (DeleteVehicleRequest) returns (google.protobuf.Empty);
+    rpc SearchVehicles (SearchVehiclesRequest) returns (SearchVehiclesResponse);
+    rpc GetAllVehicles (google.protobuf.Empty) returns (GetAllVehiclesResponse);
+}

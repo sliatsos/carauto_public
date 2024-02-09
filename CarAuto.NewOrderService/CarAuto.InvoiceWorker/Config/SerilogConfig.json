@@ -1,0 +1,29 @@
+{
+  "Serilog": {
+    "Using": [
+      "Serilog.Enrichers.Environment",
+      "Serilog.Enrichers.Process",
+      "Serilog.Enrichers.Thread",
+      "Serilog.Settings.Configuration",
+      "Serilog.Extensions.Hosting",
+      "Serilog.Enrichers.CorrelationId"
+    ],
+    "Enrich": [ "FromLogContext", "WithMachineName", "WithProcessId", "WithThreadId", "WithExceptionDetails", "WithCorrelationIdHeader(X-Correlation-ID)" ],
+    "MinimumLevel": {
+      "Default": "Debug",
+      "Override": {
+        "Microsoft": "Information",
+        "System": "Information"
+      }
+    },
+    "Kafka": {
+      "batchSizeLimit": "50",
+      "period": "5",
+      "bootstrapServers": "kafka:9092",
+      "topic": "dev.general.logcreation.elasticsearchLogobject.v1.json"
+    },
+    "Properties": {
+      "Application": "Orders"
+    }
+  }
+}

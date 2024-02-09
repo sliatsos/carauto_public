@@ -1,0 +1,5 @@
+{
+  "ConnectionStrings": {
+    "Database": "Server=vehicleservicedb;Port=5432;Database=vehicledb;User Id=postgres"
+  }
+}

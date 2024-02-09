@@ -1,0 +1,16 @@
+﻿syntax = "proto3";
+package CarAuto.User;
+option csharp_namespace = "CarAuto.Protos.User";
+
+import "Enums/phone_type.proto";
+
+message User {
+	string id = 1;
+	string first_name = 2;
+	string last_name = 3;
+	string user_name = 4;
+	CarAuto.Enums.PhoneType phone_type = 5;
+	string phone_number = 6;
+	string email = 7;
+	string password = 8;
+}

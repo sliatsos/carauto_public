@@ -1,0 +1,16 @@
+{
+  "ApiGateway": {
+    "url": "http://kong:8002"
+  },
+  "KongRegister": {
+    "OnStartup": true,
+    "OnShutDown": true,
+    "Disabled": false,
+    "KongApiUrl": "http://kong:8001/",
+    "KongApiKeyHeaderName": "",
+    "KongApiKeyHeaderValue": "",
+    "ServiceHost": "",
+    "ServicePort": 5000,
+    "ServiceProtocol": "grpc" 
+  }
+}

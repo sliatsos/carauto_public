@@ -1,0 +1,82 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <PackageOutputPath>$(SolutionDir)\LocalPublish\</PackageOutputPath>
+    <VersionPrefix>1.0.77</VersionPrefix>
+    <Version>1.0.77</Version>
+    <FileVersion>1.0.77</FileVersion>
+    <AssemblyVersion>1.0.77</AssemblyVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Google.Protobuf" Version="3.21.12" />
+    <PackageReference Include="Google.Protobuf.Tools" Version="3.21.12" />
+    <PackageReference Include="Grpc.Net.Client" Version="2.50.0" />
+    <PackageReference Include="Grpc.Tools" Version="2.51.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Protobuf Include="*/*.proto" ProtoRoot=".">
+    </Protobuf>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Enums\business_partner_type.proto" />
+    <None Remove="Enums\contact_type.proto" />
+    <None Remove="Enums\option_type.proto" />
+    <None Remove="Enums\order_status.proto" />
+    <None Remove="Enums\unit_of_measure.proto" />
+    <None Remove="Enums\vehicle_status.proto" />
+    <None Remove="Enums\vehicle_type.proto" />
+    <None Remove="google\api\annotations.proto" />
+    <None Remove="google\api\http.proto" />
+    <None Remove="Order\order.proto" />
+    <None Remove="Order\order_service.proto" />
+    <None Remove="User\customer.proto" />
+    <None Remove="User\customer_service.proto" />
+    <None Remove="User\salesperson.proto" />
+    <None Remove="User\salesperson_service.proto" />
+    <None Remove="Vehicle\brand_service.proto" />
+    <None Remove="Vehicle\model_service.proto" />
+    <None Remove="Vehicle\option_service.proto" />
+    <None Remove="Vehicle\vehicle.proto" />
+    <None Remove="Vehicle\vehicle_service.proto" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Protobuf Include="google\api\annotations.proto" />
+    <Protobuf Include="google\api\http.proto" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Protobuf Update="Order\order_service.proto">
+      <ProtoRoot>.</ProtoRoot>
+    </Protobuf>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Protobuf Update="Vehicle\brand_service.proto">
+      <ProtoRoot>.</ProtoRoot>
+    </Protobuf>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Protobuf Update="User\salesperson.proto">
+      <ProtoRoot>.</ProtoRoot>
+    </Protobuf>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Protobuf Update="Enums\contact_type.proto">
+      <ProtoRoot>.</ProtoRoot>
+    </Protobuf>
+  </ItemGroup>
+
+</Project>

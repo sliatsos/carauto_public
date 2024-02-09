@@ -1,0 +1,17 @@
+﻿syntax = "proto3";
+package CarAuto.Order;
+option csharp_namespace = "CarAuto.Protos.Order";
+
+import "Enums/order_status.proto";
+import "Vehicle/vehicle.proto";
+
+message Order {
+	string id = 1;
+	string customer_id = 2;
+	string model_id = 3;
+	string vehicle_id = 4;
+	repeated CarAuto.Vehicle.Option options = 5;
+	CarAuto.Enums.OrderStatus order_status = 6;
+	string order_number = 7;
+	string pdf = 8;
+}

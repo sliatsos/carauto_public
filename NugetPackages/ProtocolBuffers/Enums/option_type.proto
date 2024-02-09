@@ -1,0 +1,11 @@
+﻿syntax = "proto3";
+package CarAuto.Enums;
+option csharp_namespace = "CarAuto.Protos.Enums";
+
+enum OptionType
+{
+    OPTION_TYPE_UNSPECIFIED = 0;
+    OPTION_TYPE_OPTION = 1;
+    OPTION_TYPE_UPHOLSTERY = 2;
+    OPTION_TYPE_COLOR = 3;
+}

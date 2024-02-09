@@ -1,0 +1,7 @@
+{
+  "Kafka": {
+    "BootstrapServers": "kafka:9092",
+    "GroupId": "User",
+    "Topic": "dev.general.datasync.json"
+  }
+}

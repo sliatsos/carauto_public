@@ -1,0 +1,130 @@
+﻿@page "/users"
+@using CarAuto.GrpcClientWrapper
+@using CarAuto.Protos.Customer
+@using CarAuto.Protos.Salesperson
+@using CarAuto.Protos.User
+@using Google.Protobuf.WellKnownTypes
+@using Grpc.Core
+@attribute [Authorize(Policy = "IsAdmin")]
+@inject IGrpcClientWrapper GrpcClientWrapper
+
+<h3>Users</h3>
+
+<MudStack Spacing="3">
+    <MudStack Spacing="3" Row="true">
+        <MudIconButton Icon="@Icons.Material.Filled.Add" Size="Size.Medium" Color="Color.Primary" Href="@nameof(ManageUser)" />
+    </MudStack>
+    <MudTable ServerData="state => LoadDataAsync()"
+              ReadOnly="false"
+              EditButtonPosition="TableEditButtonPosition.End"
+              Hover="true"
+              FixedHeader="true"
+              @ref="_table"
+              Loading="@_loading"
+              LoadingProgressColor="Color.Warning">
+        <HeaderContent>
+            <MudTh Style="display: none">Id</MudTh>
+            <MudTh>Username</MudTh>
+            <MudTh>First Name</MudTh>
+            <MudTh>Last Name</MudTh>
+            <MudTh>Email</MudTh>
+            <MudTh>Phone Type</MudTh>
+            <MudTh>Phone Number</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Id" Style="display: none">@context.Id</MudTd>
+            <MudTd DataLabel="Username">@context.UserName</MudTd>
+            <MudTd DataLabel="First Name">@context.FirstName</MudTd>
+            <MudTd DataLabel="Last Name">@context.LastName</MudTd>
+            <MudTd DataLabel="Email">@context.Email</MudTd>
+            <MudTd DataLabel="Phone Type">@context.PhoneType</MudTd>
+            <MudTd DataLabel="Phone Number">@context.PhoneNumber</MudTd>
+            <MudTd>
+                <MudStack Spacing="3" Row="true">
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" OnClick="() => DeleteUserAsync(context)" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="() => EditUserAsync(context)" />
+                </MudStack>
+            </MudTd>
+        </RowTemplate>
+        <PagerContent>
+            <MudTablePager />
+        </PagerContent>
+    </MudTable>
+</MudStack>
+
+@code {
+
+    private IEnumerable<User> _users;
+    private MudTable<User> _table;
+    private bool _loading = true;
+
+    [Inject] private IDialogService _dialogService { get; set; }
+
+    [Inject] private NavigationManager _navigationManager { get; set; }
+
+    [Inject] private ISnackbar _snackbar { get; set; }
+
+    private async Task EditUserAsync(User user)
+    {
+        _navigationManager.NavigateTo($"{nameof(ManageUser)}/{user.Id}");
+    }
+
+    private async Task DeleteUserAsync(User user)
+    {
+        var dialogParameters = new DialogParameters();
+        dialogParameters.Add(nameof(Confirmation.ContentText), $"Are you sure you want to delete {nameof(User)} {user.UserName}?");
+        var dialog = await _dialogService.ShowAsync<Confirmation>("Delete", dialogParameters,
+            new DialogOptions
+                {
+                    CloseOnEscapeKey = true,
+                    CloseButton = true,
+                    Position = DialogPosition.Center,
+                    NoHeader = true,
+                });
+
+        var result = await dialog.Result;
+        if (result.Canceled)
+        {
+            _snackbar.Add("The operation was canceled by the user", Severity.Warning);
+            return;
+        }
+
+        await GrpcClientWrapper.CallGrpcServiceAsync<UserService.UserServiceClient, DeleteUserRequest, Empty>(
+            new DeleteUserRequest
+                {
+                    Id = user.Id,
+                },
+            nameof(UserService.UserServiceClient.DeleteUser),
+            new Metadata());
+
+        await _table.ReloadServerData();
+    }
+
+    private async Task<TableData<User>> LoadDataAsync()
+    {
+        _loading = true;
+        var allUsersResponse =
+            await GrpcClientWrapper.CallGrpcServiceAsync<UserService.UserServiceClient, Empty, GetAllUsersResponse>(
+                new Empty(),
+                nameof(UserService.UserServiceBase.GetAllUsers),
+                new Metadata());
+
+        _users = allUsersResponse.Users.Select(e => new User
+            {
+                FirstName = e.FirstName,
+                LastName = e.LastName,
+                PhoneNumber = e.PhoneNumber,
+                PhoneType = e.PhoneType,
+                UserName = e.UserName,
+                Email = e.Email,
+                Id = e.Id,
+            });
+
+        _loading = false;
+        return new TableData<User>
+            {
+                Items = _users,
+                TotalItems = _users.Count(),
+            };
+    }
+}

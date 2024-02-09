@@ -1,0 +1,66 @@
+syntax = "proto3";
+package CarAuto.Vehicle;
+option csharp_namespace = "CarAuto.Protos.Vehicle";
+
+import "Enums/vehicle_type.proto";
+import "Enums/unit_of_measure.proto";
+import "Enums/business_partner_type.proto";
+import "Enums/vehicle_status.proto";
+import "Enums/option_type.proto";
+import "google/protobuf/timestamp.proto";  
+
+message Model
+{
+	string id = 1;
+	string code = 2;
+	string description = 3;
+	int32 model_year = 4;
+	repeated Option options = 5;
+	string brand_id = 6;
+}
+
+message Mileage
+{
+	CarAuto.Enums.UnitOfMeasure uom = 1;
+	double value = 2;
+}
+
+message Option
+{
+	string id = 1;
+	string code = 2;
+	string internal_code = 3;
+	string description = 4;
+	CarAuto.Enums.OptionType type = 5;
+	double unit_price = 6;
+	double unit_cost = 7;
+	string vehicle_id = 8;
+	string model_id = 9;
+	bool selected = 10;
+}
+
+message Brand
+{
+	string id = 1;
+	string code = 2;
+	string display_name = 3;
+}
+
+message Vehicle
+{
+    string id = 1;
+	string external_id = 2;
+    string code = 3;
+	CarAuto.Enums.VehicleType vehicle_type = 4;
+	string vin = 5;
+	string brand_id = 6;
+    string model_id = 7;
+	string license_no = 8;
+	google.protobuf.Timestamp registration_date = 9;
+	google.protobuf.Timestamp modified_on = 10;
+	CarAuto.Enums.VehicleStatus vehicle_status = 11;
+	CarAuto.Enums.BusinessPartnerType business_partner_type = 12;
+	string business_partner_id = 13;
+	Mileage mileage = 14;
+	repeated Option options = 15;
+}

@@ -1,0 +1,7 @@
+{
+  "Number": {
+    "Initial": "TST-00100",
+    "IncrementBy": "1",
+    "FixedPart": "TST-"
+  }
+}

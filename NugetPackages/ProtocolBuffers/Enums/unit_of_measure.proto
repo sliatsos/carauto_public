@@ -1,0 +1,10 @@
+﻿syntax = "proto3";
+package CarAuto.Enums;
+option csharp_namespace = "CarAuto.Protos.Enums";
+
+enum UnitOfMeasure 
+{
+	UNIT_OF_MEASURE_UNSPECIFIED = 0;
+	UNIT_OF_MEASURE_KILOMETER = 1;
+	UNIT_OF_MEASURE_MILE = 2;
+}

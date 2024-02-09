@@ -1,0 +1,34 @@
+﻿@inject NavigationManager Navigation
+
+@*<AuthorizeView>
+    <Authorized>        
+        <MudMenu Icon="@Icons.Material.Filled.Settings">
+
+        </MudMenu>
+        <a href="logout">Log out (@context.User.Identity.Name)</a>
+    </Authorized>
+    <NotAuthorized>
+        <a href="login?redirectUri=@Uri.EscapeDataString(Navigation.BaseUri)">Log in</a>
+    </NotAuthorized>
+</AuthorizeView>*@
+
+<AuthorizeView>
+    <Authorized>
+        <MudMenu>
+            <ActivatorContent>
+                <MudAvatar  />
+            </ActivatorContent>
+            <ChildContent>
+                <MudMenuItem Href="logout" Target="_self">Sign out (@context.User.Identity.Name)</MudMenuItem>
+            </ChildContent>
+        </MudMenu>
+        <a href="logout">Log out (@context.User.Identity.Name)</a>
+    </Authorized>
+    <NotAuthorized>
+        <a href="login?redirectUri=@Uri.EscapeDataString(Navigation.BaseUri)">Log in</a>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+
+}

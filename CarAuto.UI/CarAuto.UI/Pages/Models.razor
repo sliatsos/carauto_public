@@ -1,0 +1,156 @@
+﻿@page "/Models"
+@using CarAuto.GrpcClientWrapper
+@using CarAuto.Protos.Customer
+@using CarAuto.Protos.Salesperson
+@using CarAuto.Protos.User
+@using CarAuto.Protos.Vehicle;
+@using Google.Protobuf.WellKnownTypes
+@using Grpc.Core
+@attribute [Authorize(Policy = "IsAdmin")]
+@inject IGrpcClientWrapper GrpcClientWrapper
+
+<h3>Models</h3>
+
+<MudStack Spacing="3">
+    <MudStack Spacing="3" Row="true">
+        <MudIconButton Icon="@Icons.Material.Filled.Add" Size="Size.Medium" Color="Color.Primary" Href="@nameof(ManageModel)" />
+    </MudStack>
+    <MudTable ServerData="state => LoadDataAsync()"
+              ReadOnly="false"
+              EditButtonPosition="TableEditButtonPosition.End"
+              Hover="true"
+              FixedHeader="true"
+              @ref="_table"
+              Loading="@_loading"
+              LoadingProgressColor="Color.Warning">
+        <HeaderContent>
+            <MudTh Style="display: none">Id</MudTh>
+            <MudTh>Code</MudTh>
+            <MudTh>Description</MudTh>
+            <MudTh>Brand</MudTh>
+            <MudTh>Model Year</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Id" Style="display: none">@context.Id</MudTd>
+            <MudTd DataLabel="Code">@context.Code</MudTd>
+            <MudTd DataLabel="Description">@context.Description</MudTd>
+            <MudTd DataLabel="Brand">@GetBrandDescription(context.BrandId)</MudTd>
+            <MudTd DataLabel="ModelYear">@context.ModelYear</MudTd>
+            <MudTd>
+                <MudStack Spacing="3" Row="true">
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" OnClick="() => DeleteModelAsync(context)" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="() => EditModelAsync(context)" />
+                </MudStack>
+            </MudTd>
+        </RowTemplate>
+        <PagerContent>
+            <MudTablePager />
+        </PagerContent>
+    </MudTable>
+</MudStack>
+
+@code {
+
+    private IEnumerable<Model> _Models;
+    private MudTable<Model> _table;
+    private bool _loading = true;
+
+    [Inject] private IDialogService _dialogService { get; set; }
+
+    [Inject] private NavigationManager _navigationManager { get; set; }
+
+    [Inject] private ISnackbar _snackbar { get; set; }
+
+    private async Task EditModelAsync(Model Model)
+    {
+        _navigationManager.NavigateTo($"{nameof(ManageModel)}/{Model.Id}");
+    }
+
+    private string GetBrandDescription(string brandId)
+    {
+        if (string.IsNullOrEmpty(brandId))
+        {
+            return string.Empty;
+        }
+
+        var brandResponse =
+            GrpcClientWrapper.CallGrpcService<BrandService.BrandServiceClient, GetBrandRequest, GetBrandResponse>(
+                new GetBrandRequest
+                {
+                    Id = brandId,
+                },
+                nameof(BrandService.BrandServiceClient.GetBrand),
+                new Metadata());
+
+        return brandResponse?.Brand?.DisplayName;
+    }
+
+    private string GetModelDescription(string modelId)
+    {
+        if (string.IsNullOrEmpty(modelId))
+        {
+            return string.Empty;
+        }
+
+        var modelResponse =
+            GrpcClientWrapper.CallGrpcService<ModelService.ModelServiceClient, GetModelRequest, GetModelResponse>(
+                new GetModelRequest
+                    {
+                        Id = modelId,
+                    },
+                nameof(ModelService.ModelServiceClient.GetModel),
+                new Metadata());
+
+        return modelResponse?.Model?.Description;
+    }
+
+    private async Task DeleteModelAsync(Model Model)
+    {
+        var dialogParameters = new DialogParameters();
+        dialogParameters.Add(nameof(Confirmation.ContentText), $"Are you sure you want to delete {nameof(Model)} {Model.Code}?");
+        var dialog = await _dialogService.ShowAsync<Confirmation>("Delete", dialogParameters,
+            new DialogOptions
+                {
+                    CloseOnEscapeKey = true,
+                    CloseButton = true,
+                    Position = DialogPosition.Center,
+                    NoHeader = true,
+                });
+
+        var result = await dialog.Result;
+        if (result.Canceled)
+        {
+            _snackbar.Add("The operation was canceled by the user", Severity.Warning);
+            return;
+        }
+
+        await GrpcClientWrapper.CallGrpcServiceAsync<ModelService.ModelServiceClient, DeleteModelRequest, Empty>(
+            new DeleteModelRequest
+                {
+                    Id = Model.Id,
+                },
+            nameof(ModelService.ModelServiceClient.DeleteModel),
+            new Metadata());
+
+        await _table.ReloadServerData();
+    }
+
+    private async Task<TableData<Model>> LoadDataAsync()
+    {
+        _loading = true;
+        var allUsersResponse =
+            await GrpcClientWrapper.CallGrpcServiceAsync<ModelService.ModelServiceClient, Empty, GetAllModelsResponse>(
+                new Empty(),
+                nameof(ModelService.ModelServiceClient.GetAllModels),
+                new Metadata());
+
+        _Models = allUsersResponse.Models;
+
+        _loading = false;
+        return new TableData<Model>
+            {
+                Items = _Models,
+                TotalItems = _Models.Count(),
+            };
+    }
+}

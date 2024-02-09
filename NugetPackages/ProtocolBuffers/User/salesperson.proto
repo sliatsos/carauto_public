@@ -1,0 +1,16 @@
+﻿syntax = "proto3";
+package CarAuto.Salesperson;
+option csharp_namespace = "CarAuto.Protos.Salesperson";
+
+import "google/protobuf/timestamp.proto";
+
+message Salesperson {
+	string id = 1;
+	string code = 2;
+	string display_name = 3;
+	google.protobuf.Timestamp modified_on = 4;
+	string email = 5;
+	string phone = 6;
+	string image = 7;
+	string user_id = 8;
+}

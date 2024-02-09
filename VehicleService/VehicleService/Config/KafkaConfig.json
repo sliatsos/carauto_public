@@ -1,0 +1,7 @@
+{
+  "Kafka": {
+    "BootstrapServers": "kafka:9092",
+    "GroupId": "Vehicle",
+    "Topic": "dev.general.datasync.erp.json"
+  }
+}

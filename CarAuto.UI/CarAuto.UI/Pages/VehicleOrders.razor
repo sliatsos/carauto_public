@@ -1,0 +1,131 @@
+﻿@page "/vehicleorders"
+@using CarAuto.GrpcClientWrapper
+@using CarAuto.Protos.Customer
+@using CarAuto.Protos.Order;
+@using CarAuto.Protos.Salesperson
+@using CarAuto.Protos.User
+@using CarAuto.Protos.Vehicle;
+@using CarAuto.UI.Models;
+@using Google.Protobuf.WellKnownTypes
+@using Grpc.Core
+@using CarAuto.Protos.Enums;
+@attribute [Authorize(Policy = "IsUser")]
+
+<h3>Customer Orders</h3>
+
+<MudStack Spacing="3">
+    <MudStack Spacing="3" Row="true">
+        <MudIconButton Icon="@Icons.Material.Filled.Add" Size="Size.Medium" Color="Color.Primary" Href="@nameof(VehicleOrder)" />
+    </MudStack>
+    <MudTable ServerData="state => LoadDataAsync(state)"
+              ReadOnly="false"
+              EditButtonPosition="TableEditButtonPosition.End"
+              Hover="true"
+              FixedHeader="true"
+              @ref="_table"
+              Loading="@_loading"
+              LoadingProgressColor="Color.Warning">
+        <HeaderContent>
+            <MudTh Style="display: none">Id</MudTh>
+            <MudTh>Order Number</MudTh>
+            <MudTh>Customer Name</MudTh>
+            <MudTh>Order Status</MudTh>
+            <MudTh>Model</MudTh>
+            <MudTh>Total Cost</MudTh>
+            <MudTh>Total Price</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Id" Style="display: none">@context.Id</MudTd>
+            <MudTd DataLabel="Order Number">@context.OrderNumber</MudTd>
+            <MudTd DataLabel="Customer Name">@context.Customer.DisplayName</MudTd>
+            <MudTd DataLabel="Order Status">@context.OrderStatus</MudTd>
+            <MudTd DataLabel="Model">@context.Model.Description</MudTd>
+            <MudTd DataLabel="Total Cost">@context.TotalCost</MudTd>
+            <MudTd DataLabel="Total Price">@context.TotalPrice</MudTd>
+            <MudTd>
+                <MudStack Spacing="3" Row="true">
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="() => EditVehicleAsync(context)" />
+                </MudStack>
+            </MudTd>
+        </RowTemplate>
+        <PagerContent>
+            <MudTablePager />
+        </PagerContent>
+    </MudTable>
+</MudStack>
+
+    @code {
+
+    private IEnumerable<OrderModel> _orders;
+    private MudTable<OrderModel> _table;
+    private bool _loading = true;
+
+    [Inject] private IGrpcClientWrapper _grpcClientWrapper { get; set; }
+
+    [Inject] private IDialogService _dialogService { get; set; }
+
+    [Inject] private NavigationManager _navigationManager { get; set; }
+
+    [Inject] private ISnackbar _snackbar { get; set; }
+
+    private async Task EditVehicleAsync(OrderModel order)
+    {
+        _navigationManager.NavigateTo($"{nameof(VehicleOrder)}/{order.Id}");
+    }
+
+    private async Task<TableData<OrderModel>> LoadDataAsync(TableState state)
+    {
+        _loading = true;
+
+        var userOrders = await _grpcClientWrapper.CallGrpcServiceAsync<OrderService.OrderServiceClient, Empty, GetUserOrdersResponse>(
+            new Empty(),
+            nameof(OrderService.OrderServiceClient.GetUserOrders),
+            new Metadata());
+
+        var customer = await GetCustomerAsync();
+        _orders = userOrders.Orders.Select(e => new OrderModel
+        {
+            Customer = customer,
+            OrderNumber = e.OrderNumber,
+            OrderStatus = e.OrderStatus,
+            Model = GetModelById(e.ModelId),
+            Id = e.Id,
+            Options = e.Options.ToList(),
+        });
+
+        _loading = false;
+        var openOrders = _orders.Where(e => e.OrderStatus == OrderStatus.Open);
+        return new TableData<OrderModel>
+            {
+                Items = openOrders.Skip(state.Page * state.PageSize).Take(state.PageSize),
+                TotalItems = openOrders.Count(),
+            };
+    }
+
+    private Model GetModelById(string modelId)
+    {
+        if (string.IsNullOrEmpty(modelId))
+        {
+            return null;
+        }
+
+        var modelResponse = _grpcClientWrapper.CallGrpcService<ModelService.ModelServiceClient, GetModelRequest, GetModelResponse>(
+            new GetModelRequest
+                {
+                    Id = modelId,
+                },
+            nameof(ModelService.ModelServiceClient.GetModel),
+            new Metadata());
+
+        return modelResponse.Model;
+    }
+
+    private async Task<Customer> GetCustomerAsync()
+    {
+        var customerResponse = await _grpcClientWrapper.CallGrpcServiceAsync<CustomerService.CustomerServiceClient, Empty, GetCustomerResponse>(
+            new Empty(),
+            nameof(CustomerService.CustomerServiceClient.GetCurrentCustomer),
+            new Metadata());
+        return customerResponse.Customer;
+    }
+}

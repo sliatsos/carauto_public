@@ -1,0 +1,25 @@
+{
+  "id": "5d8ec900-caa7-4a9f-974b-0b6a8c5eb456",
+  "name": "CarAuto Invoicing System",
+  "publisher": "CarAuto",
+  "version": "1.0.0.0",
+  "dependencies": [],
+  "screenshots": [],
+  "platform": "21.0.0.0",
+  "application": "21.0.0.0",
+  "idRanges": [
+    {
+      "from": 50100,
+      "to": 50149
+    }
+  ],
+  "resourceExposurePolicy": {
+    "allowDebugging": true,
+    "allowDownloadingSource": true,
+    "includeSourceInSymbolFile": true
+  },
+  "runtime": "11.0",
+  "features": [
+    "NoImplicitWith"
+  ]
+}

@@ -1,0 +1,201 @@
+﻿@using CarAuto.GrpcClientWrapper;
+@using CarAuto.Protos.Customer;
+@using CarAuto.Protos.Order;
+@using CarAuto.Protos.Vehicle;
+@using CarAuto.UI.Models;
+@using Google.Protobuf.WellKnownTypes;
+@using Grpc.Core;
+@inject IGrpcClientWrapper GrpcClientWrapper
+@inject ISnackbar SnackBar
+
+<MudCard>
+    <MudForm Model="@_model">
+        <MudExpansionPanels DisableBorders="true" MultiExpansion="true">
+            <MudExpansionPanel Text="Model Information" IsExpanded="true">
+                <MudStack Row="false" Spacing="3">
+                    <MudStack Row="true" Spacing="3">
+                        <SelectModel SelectedValueChanged="SelectModelChanged"
+                                     InitialValue="@_model.Model"
+                                     TClient="ModelService.ModelServiceClient"
+                                     TModel="Model"
+                                     TRequest="Empty"
+                                     TResponse="GetAllModelsResponse"
+                                     Title="Model"
+                                     MethodName="@nameof(ModelService.ModelServiceClient.GetAllModels)"
+                                     DisplayProperties="@(new List<string> {nameof(Model.Description)})"
+                                     RepeaterProperty="@nameof(GetAllModelsResponse.Models)"
+                                     Disabled="_created" />
+                        <MudTextField T="string" Label="Brand" Disabled=true Value="@(GetBrand(_model.Model.BrandId))" />
+                        <MudTextField T="string" Label="Code" Disabled=true @bind-Value="@_model.Model.Code" />
+                        <MudTextField T="string" Label="Description" Disabled=true @bind-Value="@_model.Model.Description" />
+                    </MudStack>
+                </MudStack>
+            </MudExpansionPanel>
+            <MudExpansionPanel Text="Customer Information" IsInitiallyExpanded="true">
+                <MudStack Row="false" Spacing="3">
+                    <MudStack Row="true" Spacing="3">
+                        <MudTextField T="string" Label="Code" Disabled=true @bind-Value="@_model.Customer.Code" />
+                        <MudTextField T="string" Label="Display Name" Disabled=true @bind-Value="@_model.Customer.DisplayName" />
+                        <MudTextField T="string" Label="Country" Disabled=true @bind-Value="@_model.Customer.Country" />
+                    </MudStack>
+
+                    <MudStack Row="true" Spacing="3">
+                        <MudTextField T="string" Label="City" Disabled=true @bind-Value="@_model.Customer.City" />
+                        <MudTextField T="string" Label="Address" Disabled=true @bind-Value="@_model.Customer.Address" />
+                        <MudTextField T="string" Label="Post Code" Disabled=true @bind-Value="@_model.Customer.PostCode" />
+                    </MudStack>
+
+                    <MudStack Row="true" Spacing="3">
+                        <MudTextField T="string" Label="Phone" Disabled=true @bind-Value="@_model.Customer.Phone" />
+                        <MudTextField T="string" Label="E-mail" Disabled=true @bind-Value="@_model.Customer.Email" />
+                        <MudTextField T="string" Label="Mobile" Disabled=true @bind-Value="@_model.Customer.Mobile" />
+                    </MudStack>
+                </MudStack>
+            </MudExpansionPanel>
+            <MudExpansionPanel Text="Options" IsInitiallyExpanded="false">
+                <MudTable Items="@_model.Options"
+                          ReadOnly="true"
+                          EditButtonPosition="TableEditButtonPosition.End"
+                          Hover="true"
+                          FixedHeader="true"
+                          Dense="true"
+                          MultiSelection="true"
+                          SelectOnRowClick="false"
+                          T="Protos.Vehicle.Option"
+                          SelectedItems="_selectedOptions">
+                    <HeaderContent>
+                        <MudTh Style="display: none">Id</MudTh>
+                        <MudTh>Code</MudTh>
+                        <MudTh>Internal Code</MudTh>
+                        <MudTh>Description</MudTh>
+                        <MudTh>Unit Price</MudTh>
+                        <MudTh>Unit Cost</MudTh>
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd DataLabel="Id" Style="display: none">@context.Id</MudTd>
+                        <MudTd DataLabel="Code">@context.Code</MudTd>
+                        <MudTd DataLabel="Internal Code">@context.InternalCode</MudTd>
+                        <MudTd DataLabel="Description">@context.Description</MudTd>
+                        <MudTd DataLabel="Unit Price">@context.UnitPrice</MudTd>
+                        <MudTd DataLabel="Unit Cost">@context.UnitCost</MudTd>
+                    </RowTemplate>
+                    <RowEditingTemplate>
+                        <MudTd DataLabel="Code">
+                            <MudTextField @bind-Value="@context.Code" Required />
+                         </MudTd>
+                         <MudTd DataLabel="Internal Code">
+                             <MudTextField @bind-Value="@context.InternalCode" Required />
+                         </MudTd>
+                         <MudTd DataLabel="Description">
+                             <MudTextField @bind-Value="@context.Description" Required />
+                         </MudTd>
+                         <MudTd DataLabel="Unit Price">
+                             <MudNumericField @bind-Value="@context.UnitPrice" Required Min="1" />
+                         </MudTd>
+                         <MudTd DataLabel="Unit Cost">
+                             <MudTextField @bind-Value="@context.UnitCost" Required />
+                         </MudTd>
+                     </RowEditingTemplate>
+                     <PagerContent>
+                         <MudTablePager />
+                     </PagerContent>
+                 </MudTable>
+             </MudExpansionPanel>
+         </MudExpansionPanels>
+     </MudForm>
+ </MudCard>
+
+ <div class="d-flex align-center justify-space-between">
+     <MudButton Variant="Variant.Filled"
+                Color="Color.Primary"
+                Class="btn btn-primary btn-lg ml-auto"
+                OnClick="OnRegisterAsync">Register</MudButton>
+ </div>
+
+ @code {
+    [Inject]
+    private IGrpcClientWrapper _grpcClientWrapper { get; set; }
+    [CascadingParameter]
+    protected internal OrderModel _model { get; set; }
+    [Parameter] public EventCallback<Order> OrderCreated { get; set; }
+    private bool _created = false;
+    private HashSet<Protos.Vehicle.Option> _selectedOptions = new HashSet<Protos.Vehicle.Option>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _model.Customer = await GetCustomerAsync();
+    }
+
+    private async Task OnRegisterAsync()
+    {
+        var request = new CreateOrderRequest
+            {
+                Order = new Order
+                {
+                    CustomerId = _model.Customer.Id,
+                    ModelId = _model.Model.Id,
+                }
+            };
+        request.Order.Options.AddRange(_selectedOptions);
+
+        var orderResponse = await GrpcClientWrapper.CallGrpcServiceAsync<OrderService.OrderServiceClient, CreateOrderRequest, CreateOrderResponse>(
+            request,
+            nameof(OrderService.OrderServiceClient.CreateOrder),
+            new Metadata());
+
+        SnackBar.Add("Order has been created. Waiting for approval", Severity.Info);
+
+        var userOrders = await GrpcClientWrapper.CallGrpcServiceAsync<OrderService.OrderServiceClient, Empty, GetUserOrdersResponse>(
+            new Empty(),
+            nameof(OrderService.OrderServiceClient.GetUserOrders),
+            new Metadata());
+
+        var order = userOrders.Orders.FirstOrDefault(e => e.Id == orderResponse.Id);
+
+        await OrderCreated.InvokeAsync(order);
+        _created = true;
+    }
+
+    private async Task<Customer> GetCustomerAsync()
+    {
+        var customerResponse = await _grpcClientWrapper.CallGrpcServiceAsync<CustomerService.CustomerServiceClient, Empty, GetCustomerResponse>(
+        new Empty(),
+        nameof(CustomerService.CustomerServiceClient.GetCurrentCustomer),
+        new Metadata());
+        return customerResponse.Customer;
+    }
+
+    private string GetBrand(string brandId)
+    {
+        if (brandId == string.Empty)
+        {
+            return string.Empty;
+        }
+        var brandResponse = _grpcClientWrapper.CallGrpcService<BrandService.BrandServiceClient, GetBrandRequest, GetBrandResponse>(
+        new GetBrandRequest
+            {
+                Id = brandId,
+            },
+        nameof(BrandService.BrandServiceClient.GetBrand),
+        new Metadata());
+        return brandResponse.Brand.Code;
+    }
+
+    private void SelectModelChanged(Model model)
+    {
+        foreach (var option in model.Options)
+        {
+            option.Id = Guid.Empty.ToString();
+            option.Selected = option.Code == option.InternalCode;
+            if (option.Selected)
+            {
+                _selectedOptions.Add(option);
+            }
+        }
+
+        _model.Model = model;
+        _model.Options.Clear();
+        _model.Options.AddRange(model.Options);
+        StateHasChanged();
+    }
+ }

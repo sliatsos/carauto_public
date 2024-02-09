@@ -1,0 +1,50 @@
+syntax = "proto3";
+package CarAuto.Vehicle;
+option csharp_namespace = "CarAuto.Protos.Vehicle";
+
+import "Vehicle/vehicle.proto";
+import "google/protobuf/empty.proto";
+
+message CreateModelRequest
+{
+    Model model = 1;
+}
+
+message CreateModelResponse
+{
+    string id = 1;
+}
+
+message UpdateModelRequest
+{
+    Model model = 1;
+}
+
+message GetModelRequest
+{
+    string id = 1;
+}
+
+message GetModelResponse
+{
+    Model model = 1;
+}
+
+message DeleteModelRequest
+{
+    string id = 1;
+}
+
+message GetAllModelsResponse
+{
+    repeated Model models = 1;
+}
+
+service ModelService
+{
+    rpc CreateModel (CreateModelRequest) returns (CreateModelResponse);
+    rpc UpdateModel (UpdateModelRequest) returns (google.protobuf.Empty);
+    rpc GetModel (GetModelRequest) returns (GetModelResponse);
+    rpc DeleteModel (DeleteModelRequest) returns (google.protobuf.Empty);
+    rpc GetAllModels (google.protobuf.Empty) returns (GetAllModelsResponse);
+}

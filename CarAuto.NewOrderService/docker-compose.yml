@@ -1,0 +1,35 @@
+version: '3.4'
+
+services:
+  db:
+    image: postgres
+    restart: always
+    container_name: orderservicedb
+    ports:
+    - 5440:5432
+    environment:
+      POSTGRES_DB: orderdb
+      POSTGRES_HOST_AUTH_METHOD: "trust"
+
+  carauto.neworderservice:
+    image: ${DOCKER_REGISTRY-}carautoneworderservice
+    hostname: orders
+    ports:
+    - 5410:5000
+    - 5480:80
+    build:
+      context: .
+      dockerfile: CarAuto.NewOrderService/Dockerfile
+
+  carauto.invoiceworker:
+    image: ${DOCKER_REGISTRY-}carautoinvoiceworker
+    hostname: invoices
+    build:
+      context: .
+      dockerfile: CarAuto.InvoiceWorker/Dockerfile
+
+networks:
+  default:
+    external:
+      name: carauto-network
+

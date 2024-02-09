@@ -1,0 +1,11 @@
+﻿syntax = "proto3";
+package CarAuto.Enums;
+option csharp_namespace = "CarAuto.Protos.Enums";
+
+enum VehicleStatus
+{
+	VEHICLE_STATUS_UNSPECIFIED = 0;
+	VEHICLE_STATUS_CUSTOMER = 1;
+    VEHICLE_STATUS_USED_VEHICLE = 2;
+    VEHICLE_STATUS_NEW_VEHICLE = 3;
+}  

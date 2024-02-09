@@ -1,0 +1,10 @@
+﻿syntax = "proto3";
+package CarAuto.Enums;
+option csharp_namespace = "CarAuto.Protos.Enums";
+
+enum OrderStatus {
+    OPEN = 0;
+    APPROVED = 1;
+    INVOICED = 2;
+    PRINTED = 3;
+}

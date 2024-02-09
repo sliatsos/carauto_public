@@ -1,0 +1,55 @@
+﻿@using CarAuto.Protos.User
+@using CarAuto.GrpcClientWrapper
+@using Google.Protobuf.Collections
+@using Google.Protobuf.WellKnownTypes
+@using Grpc.Core
+
+<MudSelect T="User" SelectedValues="_selectedUsers" SelectedValuesChanged="SelectedUserChangedAsync" Label="User">
+    @foreach (var user in GetUsers())
+    {
+        <MudSelectItem T="User" Value="@(user)">@($"{user.FirstName}, {user.LastName}")</MudSelectItem>
+    }
+</MudSelect>
+
+@code {
+    [Parameter] public EventCallback<User> SelectedValueChanged { get; set; }
+    [Parameter] public User InitialValue { get; set; }
+    [Inject] private IGrpcClientWrapper _grpcClientWrapper { get; set; }
+    private List<User> _selectedUsers = new();
+
+    protected override Task OnInitializedAsync()
+    {
+        _selectedUsers.Add(InitialValue);
+        return base.OnInitializedAsync();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await base.OnParametersSetAsync();
+    }
+
+    private RepeatedField<User> GetUsers()
+    {
+        var allUsersResponse =
+            _grpcClientWrapper.CallGrpcService<UserService.UserServiceClient, Empty, GetAllUsersResponse>(
+                new Empty(),
+                nameof(UserService.UserServiceBase.GetAllUsers),
+                new Metadata());
+
+        return allUsersResponse.Users;
+    }
+
+    private async Task SelectedUserChangedAsync(IEnumerable<User> selectedUsers)
+    {
+        _selectedUsers.Clear();
+        foreach (var selectedType in selectedUsers)
+        {
+            _selectedUsers.Add(selectedType);
+        }
+        var user = _selectedUsers.FirstOrDefault();
+        if (user != null)
+        {
+            await SelectedValueChanged.InvokeAsync(user);
+        }
+    }
+}

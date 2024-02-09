@@ -1,0 +1,11 @@
+﻿syntax = "proto3";
+package CarAuto.Enums;
+option csharp_namespace = "CarAuto.Protos.Enums";
+
+enum VehicleType
+{
+	VEHICLE_TYPE_UNSPECIFIED = 0;
+	VEHICLE_TYPE_CAR = 1;
+    VEHICLE_TYPE_VAN = 2;
+    VEHICLE_TYPE_TRUCK = 3;
+}

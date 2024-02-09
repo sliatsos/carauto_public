@@ -1,0 +1,18 @@
+#!/bin/bash
+echo "Creating kong user"
+psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
+
+    --  DROP ROLE IF EXISTS kong;
+
+   CREATE ROLE kong LOGIN PASSWORD 'kong';
+
+   ALTER ROLE kong WITH LOGIN;
+   ALTER ROLE kong WITH SUPERUSER;
+   ALTER ROLE kong with CREATEDB;
+   ALTER ROLE kong WITH INHERIT;
+   ALTER ROLE kong WITH CREATEROLE;
+   ALTER ROLE kong WITH REPLICATION;
+
+    CREATE DATABASE kong;
+    GRANT ALL PRIVILEGES ON DATABASE kong TO kong;
+EOSQL

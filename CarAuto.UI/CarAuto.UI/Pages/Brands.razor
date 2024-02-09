@@ -1,0 +1,118 @@
+﻿@page "/brands"
+@using CarAuto.GrpcClientWrapper
+@using CarAuto.Protos.Vehicle
+@using Google.Protobuf.WellKnownTypes
+@using Grpc.Core
+@attribute [Authorize(Policy = "IsAdmin")]
+@inject IGrpcClientWrapper GrpcClientWrapper
+
+<h3>Salespeople</h3>
+<MudStack Spacing="3">
+    <MudStack Spacing="3" Row="true">
+        <MudIconButton Icon="@Icons.Material.Filled.Add" Size="Size.Medium" Color="Color.Primary" Href="@nameof(ManageBrand)" />
+    </MudStack>
+    <MudTable ServerData="state => LoadDataAsync()"
+              ReadOnly="false"
+              EditButtonPosition="TableEditButtonPosition.End"
+              Hover="true"
+              FixedHeader="true"
+              @ref="_table"
+              Loading="@_loading"
+              LoadingProgressColor="Color.Warning">
+        <HeaderContent>
+            <MudTh Style="display: none">Id</MudTh>
+            @*<MudTh>Image</MudTh>*@
+            <MudTh>Code</MudTh>
+            <MudTh>Name</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Id" Style="display: none">@context.Id</MudTd>
+@*            <MudTd DataLabel="Image">
+                <MudAvatar Image="@context.Image" Size="Size.Large"></MudAvatar>
+            </MudTd>*@
+            <MudTd DataLabel="Code">@context.Code</MudTd>
+            <MudTd DataLabel="Name">@context.DisplayName</MudTd>
+            <MudTd>
+                <MudStack Spacing="3" Row="true">
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" OnClick="() => DeleteAsync(context)"/>
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="() => EditAsync(context)"/>
+                </MudStack>
+            </MudTd>
+        </RowTemplate>
+        <PagerContent>
+            <MudTablePager/>
+        </PagerContent>
+    </MudTable>
+</MudStack>
+
+@code {
+
+    private IEnumerable<Brand> _Brands;
+    private MudTable<Brand> _table;
+    private bool _loading = true;
+
+    [Inject] private NavigationManager _navigationManager { get; set; }
+    [Inject] private IDialogService _dialogService { get; set; }
+    [Inject] private ISnackbar _snackbar { get; set; }
+
+    private async Task EditAsync(Brand brand)
+    {
+        _navigationManager.NavigateTo($"{nameof(ManageBrand)}/{brand.Id}");
+    }
+
+    private async Task DeleteAsync(Brand brand)
+    {
+        var dialogParameters = new DialogParameters();
+        dialogParameters.Add(nameof(Confirmation.ContentText), $"Are you sure you want to delete {nameof(Brand)} {brand.DisplayName}?");
+        var dialog = await _dialogService.ShowAsync<Confirmation>("Delete", dialogParameters,
+            new DialogOptions
+            {
+                CloseOnEscapeKey = true,
+                CloseButton = true,
+                Position = DialogPosition.Center,
+                NoHeader = true,
+            });
+
+        var result = await dialog.Result;
+        if (result.Canceled)
+        {
+            _snackbar.Add("The operation was canceled by the user", Severity.Warning);
+            return;
+        }
+
+        await GrpcClientWrapper.CallGrpcServiceAsync<BrandService.BrandServiceClient, DeleteBrandRequest, Empty>(
+            new DeleteBrandRequest
+            {
+                Id = brand.Id,
+            },
+            nameof(BrandService.BrandServiceClient.DeleteBrand),
+            new Metadata());
+
+        await _table.ReloadServerData();
+    }
+
+    private async Task<TableData<Brand>> LoadDataAsync()
+    {
+        _loading = true;
+        var allBrandsResponse =
+            await GrpcClientWrapper.CallGrpcServiceAsync<BrandService.BrandServiceClient, Empty, GetAllBrandsResponse>(
+                new Empty(),
+                nameof(BrandService.BrandServiceBase.GetAllBrands),
+                new Metadata());
+
+        _Brands = allBrandsResponse.Brands.Select(e => new Brand
+            {
+                Code = e.Code,
+                DisplayName = e.DisplayName,
+                Id = e.Id,
+                //Image = string.IsNullOrEmpty(e.Image) ? Icons.Material.Filled.Photo : $"data:image/jpeg;base64,{e.Image}",
+            });
+
+        _loading = false;
+        return new TableData<Brand>
+            {
+                Items = _Brands,
+                TotalItems = _Brands.Count(),
+            };
+    }
+}

@@ -1,0 +1,84 @@
+﻿@using CarAuto.Protos.User
+@using CarAuto.GrpcClientWrapper
+@using CarAuto.Protos.Vehicle;
+@using Google.Protobuf.Collections
+@using Google.Protobuf.WellKnownTypes
+@using Grpc.Core
+
+@typeparam TModel
+@typeparam TClient
+@typeparam TRequest where TRequest: class, new()
+@typeparam TResponse
+
+<MudSelect T="TModel" SelectedValues="_selectedBrands" SelectedValuesChanged="SelectedBrandChangedAsync" Label="@(Title)" Disabled="@(Disabled)">
+    @foreach (var brand in GetBrands())
+    {
+        <MudSelectItem T="TModel" Value="@(brand)">@(GetDisplayText(brand))</MudSelectItem>
+    }
+</MudSelect>
+
+@code {
+    [Parameter] public EventCallback<TModel> SelectedValueChanged { get; set; }
+    [Parameter] public TModel InitialValue { get; set; }
+    [Parameter] public string MethodName { get; set; }
+    [Parameter] public string Title { get; set; }
+    [Parameter] public string RepeaterProperty { get; set; }
+    [Parameter] public List<string> DisplayProperties { get; set; }
+    [Parameter] public bool Disabled { get; set; } = false;
+    [Inject] private IGrpcClientWrapper _grpcClientWrapper { get; set; }
+    private List<TModel> _selectedBrands = new();
+
+    protected override Task OnInitializedAsync()
+    {
+        _selectedBrands.Add(InitialValue);
+        return base.OnInitializedAsync();
+    }
+
+    private string GetDisplayText(TModel model)
+    {
+        if (DisplayProperties is null)
+        {
+            return string.Empty;
+        }
+        var result = string.Empty;
+        var type = model.GetType();
+
+        foreach(var property in DisplayProperties)
+        {
+            var displayValue = type.GetProperty(property).GetValue(model) as string;
+            if (displayValue != null)
+            {
+                result += $"{displayValue},";
+            }
+        }
+
+        return result.TrimEnd(',');
+    }
+
+    private RepeatedField<TModel> GetBrands()
+    {
+        var allBrandsResponse =
+            _grpcClientWrapper.CallGrpcService<TClient, TRequest, TResponse>(
+                new TRequest(),
+                MethodName,
+                new Metadata());
+
+        var responseType = allBrandsResponse.GetType();
+        var result = responseType.GetProperty(RepeaterProperty).GetValue(allBrandsResponse);
+        return (RepeatedField<TModel>)result;
+    }
+
+    private async Task SelectedBrandChangedAsync(IEnumerable<TModel> selectedBrands)
+    {
+        _selectedBrands.Clear();
+        foreach (var selectedType in selectedBrands)
+        {
+            _selectedBrands.Add(selectedType);
+        }
+        var brand = _selectedBrands.FirstOrDefault();
+        if (brand != null)
+        {
+            await SelectedValueChanged.InvokeAsync(brand);
+        }
+    }
+}

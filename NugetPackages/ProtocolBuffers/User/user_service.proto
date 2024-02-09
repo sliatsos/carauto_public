@@ -1,0 +1,45 @@
+﻿syntax = "proto3";
+package CarAuto.User;
+option csharp_namespace = "CarAuto.Protos.User";
+
+import "User/user.proto";
+import "google/protobuf/empty.proto";
+
+message GetUserRequest {
+    string id = 1;
+}
+
+message GetUserResponse {
+    CarAuto.User.User user = 1;
+}
+
+message DeleteUserRequest
+{
+    string id = 1;
+}
+
+message UpdateUserRequest {
+    CarAuto.User.User user = 1;
+}
+
+message CreateUserRequest {
+    CarAuto.User.User user = 1;
+}
+
+message CreateUserResponse {
+    string id = 1;
+}
+
+message GetAllUsersResponse {
+    repeated CarAuto.User.User users = 1;
+}
+
+service UserService {
+    rpc GetUser (GetUserRequest) returns (GetUserResponse);
+    rpc GetCurrentUser (google.protobuf.Empty) returns (GetUserResponse);
+    rpc CreateUser (CreateUserRequest) returns (CreateUserResponse);
+    rpc DeleteUser (DeleteUserRequest) returns (google.protobuf.Empty);
+    rpc UpdateUser (UpdateUserRequest) returns (google.protobuf.Empty);
+    rpc UpdateCurrentUser (UpdateUserRequest) returns (google.protobuf.Empty);
+    rpc GetAllUsers (google.protobuf.Empty) returns (GetAllUsersResponse);
+}

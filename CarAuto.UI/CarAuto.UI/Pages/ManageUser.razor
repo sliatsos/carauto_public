@@ -1,0 +1,145 @@
+﻿@page "/manageuser/{userid?}"
+@attribute [Authorize(Policy = "IsAdmin")]
+@using CarAuto.UI.Validators
+@using CarAuto.GrpcClientWrapper
+@using CarAuto.Protos.Customer
+@using CarAuto.Protos.Enums
+@using CarAuto.Protos.User
+@using Google.Protobuf.WellKnownTypes
+@using Grpc.Core
+@inject NavigationManager NavigationManager
+@inject IGrpcClientWrapper GrpcClientWrapper
+
+<MudForm @bind-IsValid="@_success" Model="@_model">
+    <MudExpansionPanels DisableBorders="true" MultiExpansion="false">
+        <MudExpansionPanel Text="General" IsInitiallyExpanded="true">
+            <MudStack Spacing="3">
+                @*<MudStack Spacing="3" Row="true">
+                <MudAvatar Size="Size.Large" Rounded="true" Image="@_image"></MudAvatar>
+                <MudFileUpload T="IBrowserFile" FilesChanged="HandleFileChangedAsync">
+                <ButtonTemplate>
+                <MudIconButton HtmlTag="label"
+                Color="Color.Info"
+                Icon="@Icons.Material.Filled.PhotoCamera"
+                for="@context">
+                </MudIconButton>
+                </ButtonTemplate>
+                </MudFileUpload>
+                </MudStack>*@
+
+                <MudStack Row="true" Spacing="3">
+                    <MudStack Spacing="3">
+                        <MudTextField T="string" @bind-Value="@_model.UserName" Label="Username" Required="true" RequiredError="Username is required!" />
+                        <MudTextField T="string" @bind-Value="@_model.Password" Label="Password" Required="true" RequiredError="Password is required!" />
+                        @*                    <MudSelect T="ContactType" SelectedValues="_selectedPhoneTypes" SelectedValuesChanged="SelectedContactTypeChanged" Label="Customer Type">
+                        <MudSelectItem T="ContactType" Value="@(ContactType.Company)">@(nameof(ContactType.Company))</MudSelectItem>
+                        <MudSelectItem T="ContactType" Value="@(ContactType.Person)">@(nameof(ContactType.Person))</MudSelectItem>
+                        </MudSelect>*@
+                    </MudStack>
+                    <MudStack Spacing="3">
+                        <MudTextField T="string" @bind-Value="@_model.FirstName" Label="First Name" Required="true" RequiredError="First Name is required!" />
+                        <MudTextField T="string" @bind-Value="@_model.LastName" Label="Last Name" Required="true" RequiredError="Last Name is required!" />
+                    </MudStack>
+                </MudStack>
+            </MudStack>
+        </MudExpansionPanel>
+        <MudExpansionPanel Text="Communication" IsInitiallyExpanded="false">
+            <MudStack Row="true" Spacing="3">
+                <MudStack Spacing="3">
+                    <MudSelect T="PhoneType" SelectedValues="_selectedPhoneTypes" SelectedValuesChanged="SelectedContactTypeChanged" Label="Customer Type">
+                        <MudSelectItem T="PhoneType" Value="@(PhoneType.Home)">@(nameof(PhoneType.Home))</MudSelectItem>
+                            <MudSelectItem T="PhoneType" Value="@(PhoneType.Mobile)">@(nameof(PhoneType.Mobile))</MudSelectItem>
+                            <MudSelectItem T="PhoneType" Value="@(PhoneType.Work)">@(nameof(PhoneType.Work))</MudSelectItem>
+                        </MudSelect>
+                        <MudTextField T="string" @bind-Value="@_model.PhoneNumber" Label="Phone" />
+                        <MudTextField T="string" @bind-Value="@_model.Email" Label="Email" Required="true" RequiredError="Email is required!" Validation="_emailValidator.Validation" />
+                    </MudStack>
+                </MudStack>
+            </MudExpansionPanel>
+        </MudExpansionPanels>
+        <div class="d-flex align-center justify-space-between">
+            <MudButton Variant="Variant.Filled"
+                   Style="@GetRegistrationVisibility"
+                   Color="Color.Primary"
+                   Disabled="@(!_success)"
+                   Class="ml-auto"
+                   OnClick="OnRegisterAsync">Register</MudButton>
+            <MudButton Variant="Variant.Filled"
+                   Style="@GetUpdateVisibility"
+                   Color="Color.Primary"
+                   Disabled="@(!_success)"
+                   Class="ml-auto"
+                   OnClick="OnUpdateAsync">Update</MudButton>
+        </div>
+    </MudForm>
+
+    @code {
+    private string _image;
+    private bool _success;
+    private EmailValidator _emailValidator = new();
+    private List<PhoneType> _selectedPhoneTypes = new();
+    private User _model = new();
+
+    [Parameter] public string? UserId { get; set; }
+
+    private string GetRegistrationVisibility => UserId != null ? "display: none" : string.Empty;
+    private string GetUpdateVisibility => UserId == null ? "display: none" : string.Empty;
+
+    private async Task OnUpdateAsync()
+    {
+        await GrpcClientWrapper.CallGrpcServiceAsync<UserService.UserServiceClient, UpdateUserRequest, Empty>(
+            new UpdateUserRequest
+                {
+                    User = _model,
+                },
+            nameof(UserService.UserServiceClient.UpdateUser),
+            new Metadata());
+
+        NavigationManager.NavigateTo(nameof(Users), true);
+    }
+
+    private async Task OnRegisterAsync()
+    {
+        await GrpcClientWrapper.CallGrpcServiceAsync<UserService.UserServiceClient, CreateUserRequest, CreateUserResponse>(
+            new CreateUserRequest
+                {
+                    User = _model,
+                },
+            nameof(UserService.UserServiceClient.CreateUser),
+            new Metadata());
+
+        NavigationManager.NavigateTo(nameof(Users), true);
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await base.OnParametersSetAsync();
+
+        if (UserId == null)
+        {
+            return;
+        }
+
+        var response = await GrpcClientWrapper.CallGrpcServiceAsync<UserService.UserServiceClient, GetUserRequest, GetUserResponse>(
+            new GetUserRequest
+                {
+                    Id = UserId,
+                },
+            nameof(UserService.UserServiceClient.GetUser),
+            new Metadata());
+
+        _model = response.User;
+        _selectedPhoneTypes.Add(_model.PhoneType);
+        _success = true;
+    }
+
+    private void SelectedContactTypeChanged(IEnumerable<PhoneType> selectedTypes)
+    {
+        _selectedPhoneTypes.Clear();
+        foreach (var selectedType in selectedTypes)
+        {
+            _selectedPhoneTypes.Add(selectedType);
+        }
+        _model.PhoneType = _selectedPhoneTypes.First();
+    }
+}

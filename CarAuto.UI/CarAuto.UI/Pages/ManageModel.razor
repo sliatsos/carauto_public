@@ -1,0 +1,276 @@
+﻿@page "/manageModel/{Modelid?}"
+@attribute [Authorize(Policy = "IsAdmin")]
+@using CarAuto.Protos.Vehicle;
+@using CarAuto.UI.Validators
+@using CarAuto.GrpcClientWrapper
+@using CarAuto.Protos.Customer
+@using CarAuto.Protos.Enums
+@using CarAuto.Protos.User
+@using Google.Protobuf.WellKnownTypes
+@using Grpc.Core
+@using Option = CarAuto.Protos.Vehicle.Option;
+@inject NavigationManager NavigationManager
+@inject IGrpcClientWrapper GrpcClientWrapper
+
+<MudForm @bind-IsValid="@_success" Model="@_model">
+    <MudExpansionPanels DisableBorders="true" MultiExpansion="true">
+        <MudExpansionPanel Text="General" IsInitiallyExpanded="true">
+            <MudStack Spacing="3">
+                <MudStack Spacing="3" Row="true">
+                    <MudAvatar Size="Size.Large" Rounded="true" Image="@_image"></MudAvatar>
+                    <MudFileUpload T="IBrowserFile" FilesChanged="HandleFileChangedAsync">
+                        <ButtonTemplate>
+                            <MudIconButton HtmlTag="label"
+                                           Color="Color.Info"
+                                           Icon="@Icons.Material.Filled.PhotoCamera"
+                                           for="@context"></MudIconButton>
+                        </ButtonTemplate>
+                    </MudFileUpload>
+                </MudStack>
+                <MudStack Row="true" Spacing="3">
+                    <MudStack Spacing="3">
+                        <MudTextField T="string" @bind-Value="@_model.Code" Label="Code" Required="true" RequiredError="Code is required!" />
+                        <MudTextField T="string" @bind-Value="@_model.Description" Label="Description" Required="true" RequiredError="Description is required!" />
+                        <MudTextField T="int" @bind-Value="@_model.ModelYear" Label="Model Year" Required="true" RequiredError="Model Year is required!" />
+                        <SelectBrand SelectedValueChanged="SelectedBrandChanged" InitialValue="_initialBrand" />
+                    </MudStack>
+                </MudStack>
+            </MudStack>
+        </MudExpansionPanel>
+        <MudExpansionPanel Text="Options" IsInitiallyExpanded="false">
+            <MudTable Items="@options"
+                      ReadOnly="@ronly"
+                      EditButtonPosition="TableEditButtonPosition.End"
+                      Hover="true"
+                      FixedHeader="true"
+                      Dense="true"
+                      RowEditPreview="OptionsRowEditPreview"
+                      RowEditCancel="OptionsRowEditCancel"
+                      OnCommitEditClick="OptionsOnCommitEditAsync"
+                      CanCancelEdit="true">
+                <ToolBarContent>
+                    <MudIconButton Icon="@Icons.Material.Filled.Add" Size="Size.Medium" Color="Color.Primary" OnClick="OptionCreateOnClick" />
+                </ToolBarContent>
+                <HeaderContent>
+                    <MudTh Style="display: none">Id</MudTh>
+                    <MudTh>Code</MudTh>
+                    <MudTh>Internal Code</MudTh>
+                    <MudTh>Description</MudTh>
+                    <MudTh>Unit Price</MudTh>
+                    <MudTh>Unit Cost</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Id" Style="display: none">@context.Id</MudTd>
+                    <MudTd DataLabel="Code">@context.Code</MudTd>
+                    <MudTd DataLabel="Internal Code">@context.InternalCode</MudTd>
+                    <MudTd DataLabel="Description">@context.Description</MudTd>
+                    <MudTd DataLabel="Unit Price">@context.UnitPrice</MudTd>
+                    <MudTd DataLabel="Unit Cost">@context.UnitCost</MudTd>
+                </RowTemplate>
+                <RowEditingTemplate>
+                    <MudTd DataLabel="Code">
+                        <MudTextField @bind-Value="@context.Code" Required />
+                    </MudTd>
+                    <MudTd DataLabel="Internal Code">
+                        <MudTextField @bind-Value="@context.InternalCode" Required />
+                    </MudTd>
+                    <MudTd DataLabel="Description">
+                        <MudTextField @bind-Value="@context.Description" Required />
+                    </MudTd>
+                    <MudTd DataLabel="Unit Price">
+                        <MudNumericField @bind-Value="@context.UnitPrice" Required Min="1" />
+                    </MudTd>
+                    <MudTd DataLabel="Unit Cost">
+                        <MudTextField @bind-Value="@context.UnitCost" Required />
+                    </MudTd>
+                </RowEditingTemplate>
+                <PagerContent>
+                    <MudTablePager />
+                </PagerContent>
+            </MudTable>
+        </MudExpansionPanel>
+    </MudExpansionPanels>
+    <div class="d-flex align-center justify-space-between">
+        <MudButton Variant="Variant.Filled"
+                   Style="@GetRegistrationVisibility"
+                   Color="Color.Primary"
+                   Disabled="@(!_success)"
+                   Class="ml-auto"
+                   OnClick="OnRegisterAsync">Register</MudButton>
+        <MudButton Variant="Variant.Filled"
+                   Style="@GetUpdateVisibility"
+                   Color="Color.Primary"
+                   Disabled="@(!_success)"
+                   Class="ml-auto"
+                   OnClick="OnUpdateAsync">Update</MudButton>
+    </div>
+</MudForm>
+
+@code {
+    private string _image;
+    private bool _success;
+    private bool _isNewOption;
+    private EmailValidator _emailValidator = new();
+    private Option _oldOption = null;
+    private Model _model = new Model();
+    private Brand _initialBrand;
+    private List<Option> options = new List<Option>();
+    private bool ronly = true;
+    private Customer _initialCustomer;
+    private Model _initialModel;
+
+    [Inject] private ISnackbar _snackbar { get; set; }
+
+    [Parameter] public string? ModelId { get; set; }
+
+    private string GetRegistrationVisibility => ModelId != null ? "display: none" : string.Empty;
+    private string GetUpdateVisibility => ModelId == null ? "display: none" : string.Empty;
+
+    private async Task OnUpdateAsync()
+    {
+        await GrpcClientWrapper.CallGrpcServiceAsync<ModelService.ModelServiceClient, UpdateModelRequest, Empty>(
+            new UpdateModelRequest
+                {
+                    Model = _model,
+                },
+            nameof(ModelService.ModelServiceClient.UpdateModel),
+            new Metadata());
+
+        NavigationManager.NavigateTo(nameof(Models), true);
+    }
+
+    private async Task OnRegisterAsync()
+    {
+        await GrpcClientWrapper.CallGrpcServiceAsync<ModelService.ModelServiceClient, CreateModelRequest, CreateModelResponse>(
+            new CreateModelRequest
+                {
+                    Model = _model,
+                },
+            nameof(ModelService.ModelServiceClient.CreateModel),
+            new Metadata());
+
+        NavigationManager.NavigateTo(nameof(Models), true);
+    }
+
+    private async Task HandleFileChangedAsync(IBrowserFile file)
+    {
+        var resizedImageFile = await file.RequestImageFileAsync("image/jpg",
+            200, 200);
+        var buffer = new byte[resizedImageFile.Size];
+        await resizedImageFile.OpenReadStream().ReadAsync(buffer);
+        //_model.Image = Convert.ToBase64String(buffer);
+
+        //_image = $"data:image/jpeg;base64,{_model.Image}";
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await base.OnParametersSetAsync();
+
+        if (ModelId == null)
+        {
+            return;
+        }
+
+        ronly = false;
+
+        var response = await GrpcClientWrapper.CallGrpcServiceAsync<ModelService.ModelServiceClient, GetModelRequest, GetModelResponse>(
+            new GetModelRequest
+                {
+                    Id = ModelId,
+                },
+            nameof(ModelService.ModelServiceClient.GetModel),
+            new Metadata());
+
+        _model = response.Model;
+
+        var brandResponse = GrpcClientWrapper.CallGrpcService<BrandService.BrandServiceClient, GetBrandRequest, GetBrandResponse>(
+            new GetBrandRequest
+                {
+                    Id = _model.BrandId,
+                },
+            nameof(BrandService.BrandServiceClient.GetBrand),
+            new Metadata());
+
+        _initialBrand = brandResponse.Brand;
+
+        //_image = $"data:image/jpeg;base64,{response.Customer.Image}";
+        //_initialUser = await GetUserAsync(_model.UserId);
+        options = _model.Options.ToList();
+        _success = true;
+    }
+
+    private void SelectedBrandChanged(Brand brand)
+    {
+        _model.BrandId = brand.Id;
+    }
+
+    private void OptionCreateOnClick()
+    {
+        _isNewOption = true;
+        options.Add(new Option
+            {
+                ModelId = ModelId,
+            });
+    }
+
+    private async Task OptionsOnCommitEditAsync()
+    {
+        if (_isNewOption)
+        {
+            var optionToCreate = options.Last();
+            var response = GrpcClientWrapper.CallGrpcService<OptionService.OptionServiceClient, CreateOptionRequest, CreateOptionResponse>(
+                new CreateOptionRequest
+                    {
+                        Option = optionToCreate,
+                    },
+                nameof(OptionService.OptionServiceClient.CreateOption),
+                new Metadata());
+
+            _snackbar.Add("Option has been created", Severity.Info);
+            _oldOption.Id = response.Id;
+        }
+        else
+        {
+            GrpcClientWrapper.CallGrpcService<OptionService.OptionServiceClient, UpdateOptionRequest, Empty>(
+              new UpdateOptionRequest
+                  {
+                      Option = _oldOption,
+                  },
+              nameof(OptionService.OptionServiceClient.UpdateOption),
+              new Metadata());
+
+            _snackbar.Add("Option has been updated", Severity.Info);
+        }
+
+        _isNewOption = false;
+    }
+
+    private void OptionsRowEditPreview(object element)
+    {
+        _oldOption = ((Option)element).Clone();
+    }
+
+    private void OptionsRowEditCancel(object element)
+    {
+        if (_isNewOption)
+        {
+            options.Remove(options.Last());
+
+            _snackbar.Add("Option creation has been cancelled", Severity.Warning);
+        }
+        else
+        {
+            var option = (Option)element;
+            option.Code = _oldOption.Code;
+            option.InternalCode = _oldOption.InternalCode;
+            option.Description = _oldOption.Description;
+            option.Type = _oldOption.Type;
+            option.UnitPrice = _oldOption.UnitPrice;
+            option.UnitCost = _oldOption.UnitCost;
+
+            _snackbar.Add("Option update has been cancelled", Severity.Warning);
+        }
+
+    }
+}

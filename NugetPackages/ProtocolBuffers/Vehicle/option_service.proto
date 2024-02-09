@@ -1,0 +1,50 @@
+syntax = "proto3";
+package CarAuto.Vehicle;
+option csharp_namespace = "CarAuto.Protos.Vehicle";
+
+import "Vehicle/vehicle.proto";
+import "google/protobuf/empty.proto";
+
+message CreateOptionRequest
+{
+    Option Option = 1;
+}
+
+message CreateOptionResponse
+{
+    string id = 1;
+}
+
+message UpdateOptionRequest
+{
+    Option Option = 1;
+}
+
+message GetOptionRequest
+{
+    string id = 1;
+}
+
+message GetOptionResponse
+{
+    Option Option = 1;
+}
+
+message DeleteOptionRequest
+{
+    string id = 1;
+}
+
+message GetAllOptionsResponse
+{
+    repeated Option Options = 1;
+}
+
+service OptionService
+{
+    rpc CreateOption (CreateOptionRequest) returns (CreateOptionResponse);
+    rpc UpdateOption (UpdateOptionRequest) returns (google.protobuf.Empty);
+    rpc GetOption (GetOptionRequest) returns (GetOptionResponse);
+    rpc DeleteOption (DeleteOptionRequest) returns (google.protobuf.Empty);
+    rpc GetAllOptions (google.protobuf.Empty) returns (GetAllOptionsResponse);
+}

@@ -1,0 +1,20 @@
+﻿<MudNavMenu>
+    <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
+    <AuthorizeView Policy="IsUser">
+@*         <MudNavLink Href="counter" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Add">Counter</MudNavLink> *@
+        <MudNavGroup Title="Vehicle Orders" Expanded="false">
+            <MudNavLink Href="vehicleorders" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">Open</MudNavLink>
+            <MudNavLink Href="approvedvehicleorders" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">Approved</MudNavLink>
+            <MudNavLink Href="invoicedvehicleorders" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">Invoiced</MudNavLink>
+        </MudNavGroup>
+    </AuthorizeView>
+    <AuthorizeView Policy="IsAdmin">
+@*         <MudNavLink Href="fetchdata" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">Fetch data</MudNavLink> *@
+        <MudNavLink Href="users" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">Users</MudNavLink>
+        <MudNavLink Href="customers" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">Customers</MudNavLink>
+        <MudNavLink Href="salespersons" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">Salespeople</MudNavLink>
+        <MudNavLink Href="vehicles" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">Vehicles</MudNavLink>
+        <MudNavLink Href="brands" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">Brands</MudNavLink>
+        <MudNavLink Href="models" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">Models</MudNavLink>
+    </AuthorizeView>
+</MudNavMenu>

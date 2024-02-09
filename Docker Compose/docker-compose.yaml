@@ -1,0 +1,314 @@
+version: '3.8'
+
+services:
+  #######################################
+  # Postgres Server and database import and creation
+  #######################################
+  db:
+    image: postgres:11.17-bullseye
+    restart: always
+    container_name: postgres
+    hostname: postgres
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=CarAuto
+    ports:
+      - "5433:5432"
+    volumes:
+      -  pgdata:/var/lib/postgresql/data  
+      - ./docker-entrypoint-initdb.d/:/docker-entrypoint-initdb.d/    
+    networks:
+      carauto:      
+
+  #######################################
+  # PGAdmin for PostgreSql
+  #######################################
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: pgadmin4
+    ports:
+        - 6970:80
+    environment:
+        PGADMIN_DEFAULT_EMAIL: "default@email.com"
+        PGADMIN_DEFAULT_PASSWORD: "password"
+    volumes:
+        - pgadmin:/var/lib/pgadmin
+    depends_on: 
+      - db
+    networks:
+      carauto:
+
+  #######################################
+  # Redis
+  #######################################        
+  redis:
+    image: redis:alpine
+    container_name: redis
+    command: redis-server
+    hostname: redis
+    restart: always
+    environment:
+        - ALLOW_EMPTY_PASSWORD=yes
+        - REDIS_DISABLE_COMMANDS=FLUSHALL
+        - REDIS_REPLICATION_MODE=master 
+    ports:
+        - 6379:6379
+    volumes:
+        - redis_data:/bitnami/redis/data
+    networks:
+      carauto: 
+    
+
+  #######################################
+  # Redis Commander
+  #######################################
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: redis-commander
+    hostname: redis-commander
+    restart: always
+    environment:
+        - REDIS_HOSTS=local:redis:6379
+    ports:
+        - 7071:8081
+    depends_on:
+      - redis
+    networks:
+      carauto:
+
+
+
+  #######################################
+  # Kong Migration
+  #######################################  
+  kong-migration:
+    image: kong:latest
+    hostname: kong-migration
+    container_name: kong-migration
+    command: "kong migrations bootstrap"
+    restart: on-failure
+    environment:
+      KONG_DATABASE: postgres
+      KONG_PG_HOST: postgres
+      KONG_PG_PASSWORD: kong
+      KONG_PG_USER: kong
+      KONG_PG_DATABASE: kong
+    links:
+      - db
+    depends_on:
+      - db
+    networks:
+      carauto:
+
+  #######################################
+  # Kong API Gateway
+  #######################################         
+  kong:
+    image: kong:latest
+    hostname: kong
+    container_name: kong
+    restart: always
+    environment:
+      KONG_DATABASE: postgres
+      KONG_PG_HOST: postgres
+      KONG_PG_PASSWORD: kong
+      KONG_PG_USER: kong
+      KONG_PG_DATABASE: kong
+      KONG_ADMIN_LISTEN: 0.0.0.0:8001
+      KONG_PROXY_ACCESS_LOG: /dev/stdout
+      KONG_ADMIN_ACCESS_LOG: /dev/stdout
+      KONG_PROXY_ERROR_LOG: /dev/stderr
+      KONG_ADMIN_ERROR_LOG: /dev/stderr
+      KONG_PROXY_LISTEN: 0.0.0.0:8000 reuseport backlog=16384, 0.0.0.0:8002 http2 reuseport backlog=16384, 0.0.0.0:8443 ssl reuseport backlog=16384, 0.0.0.0:8445 http2 ssl reuseport backlog=16384
+    depends_on:
+      - kong-migration
+    ports:
+        - "8000:8000/tcp" # proxy port http
+        - "127.0.0.1:8001:8001/tcp" # admin port http
+        - "8443:8443/tcp" # proxy port http ssl
+        - "127.0.0.1:8444:8444/tcp" # admin port http ssl
+        - "8002:8002/tcp" # proxy port http2
+        - "8445:8445" # proxy port http2 ssl
+    networks:
+      carauto:
+
+  #######################################
+  # Zookeeper
+  #######################################  
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    hostname: zookeeper
+    restart: always
+    container_name: zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+        ZOOKEEPER_CLIENT_PORT: 2181
+        ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      carauto: 
+
+  #######################################
+  # Kafka
+  #######################################  
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    hostname: kafka
+    container_name: kafka
+    restart: always
+    depends_on:
+    - zookeeper
+    ports:
+    - 9092:9092
+    - 9093:9093
+    - 29092:29092
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://kafka:9092,OUTSIDE://localhost:9093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT,OUTSIDE:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_LOG4J_LOGGERS: "kafka.controller=WARN,kafka.foo.bar=DEBUG"
+      KAFKA_LOG4J_ROOT_LOGLEVEL: WARN
+      KAFKA_TOOLS_LOG4J_LOGLEVEL: ERROR
+    networks:
+      carauto:  
+
+  #######################################
+  # Kafdrop
+  #######################################  
+  kafdrop:
+    image: obsidiandynamics/kafdrop:3.27.0
+    container_name: kafdrop
+    hostname: kafdrop
+    restart: always
+    ports:
+        - 9001:9000
+    environment:
+        KAFKA_BROKERCONNECT: "kafka:29092"
+        JVM_OPTS: "-Xms16M -Xmx48M -Xss180K -XX:-TieredCompilation -XX:+UseStringDeduplication -noverify"
+    depends_on:
+        - kafka
+    networks:
+      carauto:
+      
+  rest-proxy:
+    image: confluentinc/cp-kafka-rest:7.0.1
+    restart: always
+    depends_on:
+    - kafka
+    ports:
+    - 8082:8082
+    hostname: rest-proxy
+    container_name: rest-proxy
+    environment:
+        KAFKA_REST_HOST_NAME: rest-proxy
+        KAFKA_REST_BOOTSTRAP_SERVERS: 'kafka:29092'
+        KAFKA_REST_LISTENERS: "http://0.0.0.0:8082"
+    networks:
+      carauto:  
+      
+  duckdns:
+    image: lscr.io/linuxserver/duckdns:latest
+    container_name: duckdns
+    environment:
+      - TZ=Europe/London
+      - SUBDOMAINS=suceessstory
+      - TOKEN=371990e6-016b-4ebf-b3d5-c73ae4f0104c
+      - LOG_FILE=false #optional
+    volumes:
+      - /path/to/appdata/config:/config #optional
+    restart: unless-stopped
+    networks:
+      carauto:  
+
+  #######################################
+  # Kafka Topology Builder
+  #######################################  
+  kafka-topology-builder:
+    image: purbon/kafka-topology-builder:1.2.2
+    command: "kafka-topology-builder.sh  --brokers kafka:29092 --clientConfig /config/topology-builder-plain.properties --topology  /config/kafka-topology.yaml"   
+    restart: on-failure
+    container_name: kafka-topology-builder    
+    depends_on:
+        - kafka
+    volumes:
+        - ./config-local:/config
+    networks:
+      carauto:
+
+  #######################################
+  # Konga
+  #######################################  
+  konga:
+    image: pantsel/konga
+    container_name: konga
+    ports:
+      - 1337:1337
+    links:
+      - kong:kong
+    environment:
+      - NODE_ENV=production
+      - NO_AUTH=true
+      - KONGA_SEED_KONG_NODE_DATA_SOURCE_FILE=/app/kongadata/konga-node-seed.js
+    volumes:
+      - kongadata:/app/kongadata
+      - ./config-local/konga-node-seed.js:/app/kongadata/konga-node-seed.js
+    networks:
+      carauto:       
+
+
+  #######################################
+  # Keycloak
+  #######################################  
+  keycloak:
+    build:
+      context: .
+      dockerfile: dockerfile-keycloak
+      args:
+        # FOR production keep value false
+        USE_PROXY: "TRUE" 
+    container_name: keycloak
+    restart: always
+    environment:
+      DB_VENDOR: POSTGRES
+      DB_ADDR: postgres
+      DB_DATABASE: keycloak
+      DB_USER: keycloak
+      DB_SCHEMA: public
+      DB_PASSWORD: password
+      KEYCLOAK_USER: admin
+      KEYCLOAK_PASSWORD: admin
+    volumes:
+      - ./keycloak/realms/export:/tmp/export
+    command: 
+      - "-Djboss.http.port=7070"
+      - "-Dkeycloak.profile.feature.upload_scripts=enabled"
+      - "-Dkeycloak.migration.action=export"
+      - "-Dkeycloak.migration.provider=singleFile"
+      - "-Dkeycloak.migration.realmName=CarAuto"
+      - "-Dkeycloak.migration.usersExportStrategy=REALM_FILE"
+      - "-Dkeycloak.migration.file=/tmp/export/CarAuto.json"
+    networks:
+      carauto:        
+    ports:
+      - 7070:7070
+    depends_on:
+      - db
+
+networks:
+  carauto:
+    name: carauto-network
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.1.1.0/24
+
+volumes:
+  redis_data:
+  kongadata:
+  pgdata:               
+  pgadmin: {}
+  docker-entrypoint-initdb.d: {}        

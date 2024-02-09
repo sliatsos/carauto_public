@@ -1,0 +1,123 @@
+﻿@page "/customers"
+@using CarAuto.Protos.Customer
+@using CarAuto.GrpcClientWrapper
+@using Google.Protobuf.WellKnownTypes
+@using Grpc.Core
+@attribute [Authorize(Policy = "IsAdmin")]
+@inject IGrpcClientWrapper GrpcClientWrapper
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager
+
+<h3>Customers</h3>
+<MudStack Spacing="3">
+    <MudStack Spacing="3" Row="true">
+        <MudIconButton Icon="@Icons.Material.Filled.Add" Size="Size.Medium" Color="Color.Primary" Href="@nameof(ManageCustomer)"/>
+    </MudStack>
+    <MudTable ServerData="state => LoadDataAsync()"
+              ReadOnly="false"
+              EditButtonPosition="TableEditButtonPosition.End"
+              Hover="true"
+              FixedHeader="true"
+              @ref="_table"
+              Loading="@_loading"
+              LoadingProgressColor="Color.Warning">
+        <HeaderContent>
+            <MudTh Style="display: none">Id</MudTh>
+            <MudTh>Image</MudTh>
+            <MudTh>Code</MudTh>
+            <MudTh>Name</MudTh>
+            <MudTh>Email</MudTh>
+            <MudTh>Country</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Id" Style="display: none">@context.Id</MudTd>
+            <MudTd DataLabel="Image">
+                <MudAvatar Image="@context.Image" Size="Size.Large"></MudAvatar>
+            </MudTd>
+            <MudTd DataLabel="Code">@context.Code</MudTd>
+            <MudTd DataLabel="Name">@context.DisplayName</MudTd>
+            <MudTd DataLabel="Email">@context.Email</MudTd>
+            <MudTd DataLabel="Country">@context.Country</MudTd>
+            <MudTd>
+                <MudStack Spacing="3" Row="true">
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" OnClick="() => DeleteCustomerAsync(context)" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="() => EditCustomerAsync(context)"/>
+                </MudStack>
+            </MudTd>
+        </RowTemplate>
+        <PagerContent>
+            <MudTablePager />
+        </PagerContent>
+    </MudTable>
+</MudStack>
+
+@code {
+
+    private IEnumerable<Customer> _customers;
+    private MudTable<Customer> _table;
+    private bool _loading = true;
+
+    private async Task EditCustomerAsync(Customer customer)
+    {
+        NavigationManager.NavigateTo($"{nameof(ManageCustomer)}/{customer.Id}");
+    }
+
+    private async Task DeleteCustomerAsync(Customer customer)
+    {
+        var dialogParameters = new DialogParameters();
+        dialogParameters.Add(nameof(Confirmation.ContentText), $"Are you sure you want to delete customer {customer.DisplayName}?");
+        var dialog = await DialogService.ShowAsync<Confirmation>("Delete", dialogParameters,
+        new DialogOptions
+        {
+            CloseOnEscapeKey = true,
+            CloseButton = true,
+            Position = DialogPosition.Center,
+            NoHeader = true,
+        });
+
+        var result = await dialog.Result;
+        if (result.Canceled)
+        {
+            Snackbar.Add("The operation was canceled by the user", Severity.Warning);
+            return;
+        }
+
+        await GrpcClientWrapper.CallGrpcServiceAsync<CustomerService.CustomerServiceClient, DeleteCustomerRequest, Empty>(
+            new DeleteCustomerRequest
+                {
+                    Id = customer.Id,
+                },
+            nameof(CustomerService.CustomerServiceClient.DeleteCustomer),
+            new Metadata());
+
+        await _table.ReloadServerData();
+    }
+
+    private async Task<TableData<Customer>> LoadDataAsync()
+    {
+        _loading = true;
+        var allCustomersResponse =
+            await GrpcClientWrapper.CallGrpcServiceAsync<CustomerService.CustomerServiceClient, Empty, GetAllCustomersResponse>(
+                new Empty(),
+                nameof(CustomerService.CustomerServiceClient.GetAllCustomer),
+                new Metadata());
+
+        _customers = allCustomersResponse.Customers.Select(e => new Customer
+            {
+                Code = e.Code,
+                Country = e.Country,
+                DisplayName = e.DisplayName,
+                Email = e.Email,
+                Id = e.Id,
+                Image = $"data:image/jpeg;base64,{e.Image}",
+            });
+
+        _loading = false;
+        return new TableData<Customer>
+            {
+                Items = _customers,
+                TotalItems = _customers.Count(),
+            };
+    }
+}

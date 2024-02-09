@@ -1,0 +1,100 @@
+﻿@using CarAuto.GrpcClientWrapper;
+@using CarAuto.Protos.Customer;
+@using CarAuto.Protos.Order;
+@using CarAuto.Protos.Vehicle;
+@using CarAuto.UI.Models;
+@using Google.Protobuf.WellKnownTypes;
+@using Grpc.Core;
+@inject IGrpcClientWrapper GrpcClientWrapper
+@inject ISnackbar SnackBar
+
+<MudCard>
+    <MudForm Model="@_model">
+        <MudTextField T="string" Label="Order Number" Value="@_model.OrderNumber" Disabled="true" />
+        <MudExpansionPanels DisableBorders="true" MultiExpansion="true">
+            <MudExpansionPanel Text="Model Information" IsInitiallyExpanded="true">
+                <MudStack Row="false" Spacing="3">
+                    <MudStack Row="true" Spacing="3">
+                        <MudTextField T="string" Label="Model" Value="@_model.Model.Description" Disabled="true" />
+                        <MudTextField T="string" Label="Brand" Disabled=true Value="@(GetBrand(_model.Model.BrandId))" />
+                        <MudTextField T="string" Label="Code" Disabled=true @bind-Value="@_model.Model.Code" />
+                        <MudTextField T="string" Label="Description" Disabled=true @bind-Value="@_model.Model.Description" />
+                    </MudStack>
+                </MudStack>
+            </MudExpansionPanel>
+            <MudExpansionPanel Text="Customer Information" IsInitiallyExpanded="true">
+                <MudStack Row="false" Spacing="3">
+                    <MudStack Row="true" Spacing="3">
+                        <MudTextField T="string" Label="Code" Disabled=true @bind-Value="@_model.Customer.Code" />
+                        <MudTextField T="string" Label="Display Name" Disabled=true @bind-Value="@_model.Customer.DisplayName" />
+                        <MudTextField T="string" Label="Country" Disabled=true @bind-Value="@_model.Customer.Country" />
+                    </MudStack>
+
+                    <MudStack Row="true" Spacing="3">
+                        <MudTextField T="string" Label="City" Disabled=true @bind-Value="@_model.Customer.City" />
+                        <MudTextField T="string" Label="Address" Disabled=true @bind-Value="@_model.Customer.Address" />
+                        <MudTextField T="string" Label="Post Code" Disabled=true @bind-Value="@_model.Customer.PostCode" />
+                    </MudStack>
+
+                    <MudStack Row="true" Spacing="3">
+                        <MudTextField T="string" Label="Phone" Disabled=true @bind-Value="@_model.Customer.Phone" />
+                        <MudTextField T="string" Label="E-mail" Disabled=true @bind-Value="@_model.Customer.Email" />
+                        <MudTextField T="string" Label="Mobile" Disabled=true @bind-Value="@_model.Customer.Mobile" />
+                    </MudStack>
+                </MudStack>
+            </MudExpansionPanel>
+            <MudExpansionPanel Text="Options" IsInitiallyExpanded="false">
+                <MudTable Items="@_model.Options"
+                          ReadOnly="true"
+                          Hover="true"
+                          FixedHeader="true"
+                          Dense="true"
+                          SelectOnRowClick="false"
+                          T="Protos.Vehicle.Option">
+                    <HeaderContent>
+                        <MudTh Style="display: none">Id</MudTh>
+                        <MudTh>Code</MudTh>
+                        <MudTh>Internal Code</MudTh>
+                        <MudTh>Description</MudTh>
+                        <MudTh>Unit Price</MudTh>
+                        <MudTh>Unit Cost</MudTh>
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd DataLabel="Id" Style="display: none">@context.Id</MudTd>
+                        <MudTd DataLabel="Code">@context.Code</MudTd>
+                        <MudTd DataLabel="Internal Code">@context.InternalCode</MudTd>
+                        <MudTd DataLabel="Description">@context.Description</MudTd>
+                        <MudTd DataLabel="Unit Price">@context.UnitPrice</MudTd>
+                        <MudTd DataLabel="Unit Cost">@context.UnitCost</MudTd>
+                    </RowTemplate>
+                    <PagerContent>
+                        <MudTablePager />
+                    </PagerContent>
+                </MudTable>
+            </MudExpansionPanel>
+        </MudExpansionPanels>
+    </MudForm>
+</MudCard>
+
+@code {
+    [Inject]
+    private IGrpcClientWrapper _grpcClientWrapper { get; set; }
+    [CascadingParameter]
+    protected internal OrderModel _model { get; set; }
+
+    private string GetBrand(string brandId)
+    {
+        if (brandId == string.Empty)
+        {
+            return string.Empty;
+        }
+        var brandResponse = _grpcClientWrapper.CallGrpcService<BrandService.BrandServiceClient, GetBrandRequest, GetBrandResponse>(
+        new GetBrandRequest
+            {
+                Id = brandId,
+            },
+        nameof(BrandService.BrandServiceClient.GetBrand),
+        new Metadata());
+        return brandResponse.Brand.Code;
+    }
+ }

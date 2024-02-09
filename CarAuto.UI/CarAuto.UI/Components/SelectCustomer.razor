@@ -1,0 +1,57 @@
+﻿@using CarAuto.Protos.Customer;
+@using CarAuto.Protos.User
+@using CarAuto.GrpcClientWrapper
+@using CarAuto.Protos.Vehicle;
+@using Google.Protobuf.Collections
+@using Google.Protobuf.WellKnownTypes
+@using Grpc.Core
+
+<MudSelect T="Customer" SelectedValues="_selectedCustomers" SelectedValuesChanged="SelectedCustomerChangedAsync" Label="Customer">
+    @foreach (var brand in GetCustomers())
+    {
+        <MudSelectItem T="Customer" Value="@(brand)">@($"{brand.DisplayName}")</MudSelectItem>
+    }
+</MudSelect>
+
+@code {
+    [Parameter] public EventCallback<Customer> SelectedValueChanged { get; set; }
+    [Parameter] public Customer InitialValue { get; set; }
+    [Inject] private IGrpcClientWrapper _grpcClientWrapper { get; set; }
+    private List<Customer> _selectedCustomers = new();
+
+    protected override Task OnInitializedAsync()
+    {
+        _selectedCustomers.Add(InitialValue);
+        return base.OnInitializedAsync();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await base.OnParametersSetAsync();
+    }
+
+    private RepeatedField<Customer> GetCustomers()
+    {
+        var allCustomersResponse =
+            _grpcClientWrapper.CallGrpcService<CustomerService.CustomerServiceClient, Empty, GetAllCustomersResponse>(
+                new Empty(),
+                nameof(CustomerService.CustomerServiceClient.GetAllCustomer),
+                new Metadata());
+
+        return allCustomersResponse.Customers;
+    }
+
+    private async Task SelectedCustomerChangedAsync(IEnumerable<Customer> selectedBrands)
+    {
+        _selectedCustomers.Clear();
+        foreach (var selectedType in selectedBrands)
+        {
+            _selectedCustomers.Add(selectedType);
+        }
+        var customer = _selectedCustomers.FirstOrDefault();
+        if (customer != null)
+        {
+            await SelectedValueChanged.InvokeAsync(customer);
+        }
+    }
+}

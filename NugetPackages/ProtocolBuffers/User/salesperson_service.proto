@@ -1,0 +1,42 @@
+﻿syntax = "proto3";
+package CarAuto.Salesperson;
+option csharp_namespace = "CarAuto.Protos.Salesperson";
+
+import "User/salesperson.proto";
+import "google/protobuf/empty.proto";
+
+message GetSalespersonRequest {
+    string id = 1;
+}
+
+message GetSalespersonResponse {
+    CarAuto.Salesperson.Salesperson salesperson = 1;
+}
+
+message GetAllSalespersonResponse {
+   repeated CarAuto.Salesperson.Salesperson salesperson = 1;
+}
+
+message CreateSalespersonRequest {
+    CarAuto.Salesperson.Salesperson salesperson = 1;
+}
+
+message CreateSalespersonResponse {
+    string id = 1;
+}
+
+message DeleteSalespersonRequest {
+    string id = 1;
+}
+
+message UpdateSalespersonRequest {
+    CarAuto.Salesperson.Salesperson salesperson = 1;
+}
+
+service SalespersonService {
+    rpc GetSalesperson (GetSalespersonRequest) returns (GetSalespersonResponse);
+    rpc GetAllSalespersons (google.protobuf.Empty) returns (GetAllSalespersonResponse);
+    rpc CreateSalesperson (CreateSalespersonRequest) returns (CreateSalespersonResponse);
+    rpc DeleteSalesperson (DeleteSalespersonRequest) returns (google.protobuf.Empty);
+    rpc UpdateSalesperson (UpdateSalespersonRequest) returns (google.protobuf.Empty);
+}

@@ -1,0 +1,101 @@
+###You have to run the docker-compose-kafka.yml services first.
+version: '3.9'
+
+services:
+    ###Elasticsearch,Kibana and Kafka Connect Starts
+    elasticsearch:
+        image: elasticsearch:7.13.1
+        container_name: elasticsearch
+        hostname: elasticsearch
+        environment:
+            - xpack.security.enabled=false
+            - discovery.type=single-node
+            - bootstrap.memory_lock=true
+            - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+            - cluster.routing.allocation.disk.threshold_enabled=false
+        ports:
+            - 9200:9200
+            - 9300:9300
+
+    kibana:
+        image: kibana:7.13.2
+        container_name: kibana
+        hostname: kibana
+        ports:
+            - 5601:5601
+        links:
+            - elasticsearch:elasticsearch
+        depends_on:
+            - elasticsearch
+
+    connect:
+        image: confluentinc/cp-kafka-connect:6.2.0
+        container_name: kafka-connect
+        ports:
+            - "8083:8083"
+        environment:
+            CONNECT_BOOTSTRAP_SERVERS: "kafka:9092"
+            CONNECT_REST_PORT: 8083
+            CONNECT_GROUP_ID: compose-connect-group
+            CONNECT_CONFIG_STORAGE_TOPIC: docker-connect-configs
+            CONNECT_OFFSET_STORAGE_TOPIC: docker-connect-offsets
+            CONNECT_STATUS_STORAGE_TOPIC: docker-connect-status
+            CONNECT_KEY_CONVERTER: org.apache.kafka.connect.storage.StringConverter
+            CONNECT_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+            CONNECT_INTERNAL_KEY_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+            CONNECT_INTERNAL_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+            CONNECT_REST_ADVERTISED_HOST_NAME: "localhost"
+            CONNECT_VALUE_CONVERTER_SCHEMAS_ENABLE: "false"
+            CONNECT_LOG4J_ROOT_LOGLEVEL: "INFO"
+            CONNECT_LOG4J_LOGGERS: "org.apache.kafka.connect.runtime.rest=WARN,org.reflections=ERROR"
+            CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: "1"
+            CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: "1"
+            CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: "1"
+            CONNECT_PLUGIN_PATH: '/usr/share/java'
+        command: 
+            - bash
+            - -c
+            - |
+              echo "Installing Connector"
+              confluent-hub install confluentinc/kafka-connect-elasticsearch:latest --no-prompt --component-dir /usr/share/java
+              echo "Launching Kafka Connect worker"
+              /etc/confluent/docker/run &
+              #
+              sleep infinity
+
+    connect-ui:
+        image: landoop/kafka-connect-ui
+        container_name: connect-ui
+        depends_on:
+            - connect
+        ports:
+            - "7001:8000"
+        environment:
+            - "CONNECT_URL=http://connect:8083"
+
+    ###Elasticsearch,Kibana and Kafka Connect Ends
+
+    ### Init container for Kafka Connect configurations starts
+    init:
+        image: mcr.microsoft.com/powershell:lts-alpine-3.14
+        container_name: init
+        volumes:
+            - "./init.ps1:/init.ps1"
+        depends_on:
+            elasticsearch:
+                condition: service_started
+            kibana:
+                condition: service_started
+            connect:
+                condition: service_started
+        command: pwsh -File "../../init.ps1"
+### Init container for Kafka Connect configurations ends
+
+### put all the networks here
+networks:
+    default:
+      name: carauto-network
+      ipam:
+        driver: default
+        config:
+          - subnet: 10.1.1.0/24

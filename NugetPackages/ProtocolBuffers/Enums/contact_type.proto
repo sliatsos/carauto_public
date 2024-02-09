@@ -1,0 +1,8 @@
+﻿syntax = "proto3";
+package CarAuto.Enums;
+option csharp_namespace = "CarAuto.Protos.Enums";
+
+enum ContactType {
+    COMPANY = 0;
+    PERSON = 1;
+}

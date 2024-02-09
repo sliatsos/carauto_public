@@ -1,0 +1,57 @@
+﻿<CascadingValue Value="this">
+    <MudStack Spacing="10">
+        <div id="@Id">
+            <MudTimeline TimelineOrientation="TimelineOrientation.Horizontal" TimelinePosition="TimelinePosition.Bottom" Reverse="false">
+                @foreach (var step in Steps)
+                {
+                    <MudTimelineItem Color="@(GetStepColor(step))" Variant="Variant.Filled" id="@(GetNextStepIndex(step))">
+                        <ItemContent>
+                            <MudAlert Severity="@(GetStepSeverity(step))">@step.Name</MudAlert>
+                        </ItemContent>
+                        <ItemOpposite>
+                            <MudText Color="Color.Transparent">@step.Description</MudText>
+                        </ItemOpposite>
+                    </MudTimelineItem>
+                }
+            </MudTimeline>
+            <div id="container-fluid">
+                @ChildContent
+            </div>
+        </div>
+    </MudStack>
+@*     <div class="d-flex align-center justify-space-between">
+        <MudButton Class="btn btn-primary btn-lg ml-auto" type="button"
+                   disabled="@(ActiveStepIx == 0)" @onclick="GoBack">
+            Previous
+        </MudButton>
+        <MudButton Class="btn btn-primary btn-lg ml-auto"
+                   type="@(IsLastStep ? "submit" : "button")" @onclick="GoNext">
+            @(IsLastStep ? "Submit" : "Next")
+        </MudButton>
+    </div> *@
+</CascadingValue>
+
+@code {
+    private string GetNextStepIndex(WizardStep wizardStep)
+    {
+        return $"step-{StepsIndex(wizardStep) + 1}";
+    }
+
+    private Severity GetStepSeverity(WizardStep step)
+    {
+        if (StepsIndex(step) > step.Parent.ActiveStepIx)
+        {
+            return Severity.Info;
+        }
+        return Severity.Success;
+    }
+
+    private Color GetStepColor(WizardStep step)
+    {
+        if (StepsIndex(step) > step.Parent.ActiveStepIx)
+        {
+            return Color.Transparent;
+        }
+        return Color.Success;
+    }
+}

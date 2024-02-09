@@ -1,0 +1,35 @@
+version: '3.4'
+
+services:
+  db:
+    image: postgres
+    restart: always
+    container_name: userservicedb
+    ports:
+    - 5434:5432
+    environment:
+      POSTGRES_DB: userdb
+      POSTGRES_HOST_AUTH_METHOD: "trust"  
+
+  userservice:
+    image: ${DOCKER_REGISTRY-}userservice
+    hostname: user
+    ports:
+    - 5000:5000
+    - 5180:80
+    build:
+      context: .
+      dockerfile: UserService/Dockerfile
+
+  carauto.userservice.worker:
+    container_name: userservice.worker
+    image: ${DOCKER_REGISTRY-}carautouserserviceworker
+    build:
+      context: .
+      dockerfile: CarAuto.UserService.Worker/Dockerfile
+
+networks:
+  default:
+    external:
+      name: carauto-network
+

@@ -1,0 +1,24 @@
+﻿syntax = "proto3";
+package CarAuto.Customer;
+option csharp_namespace = "CarAuto.Protos.Customer";
+
+import "Enums/contact_type.proto";
+import "google/protobuf/timestamp.proto";
+
+message Customer {
+	string id = 1;
+	string code = 2;
+	string display_name = 3;
+	google.protobuf.Timestamp modified_on = 4;
+	string email = 5;
+	string country = 6;
+	string city = 7;
+	string address = 8;
+	string post_code = 9;
+	string county = 10;
+	string phone = 11;
+	string mobile = 12;
+	CarAuto.Enums.ContactType type = 13;
+	string image = 14;
+	string user_id = 15;
+}

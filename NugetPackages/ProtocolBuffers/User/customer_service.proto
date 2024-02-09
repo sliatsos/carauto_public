@@ -1,0 +1,45 @@
+﻿syntax = "proto3";
+package CarAuto.Customer;
+option csharp_namespace = "CarAuto.Protos.Customer";
+
+import "User/customer.proto";
+import "google/protobuf/empty.proto";
+
+message GetCustomerRequest {
+    string id = 1;
+}
+
+message GetCustomerResponse {
+    CarAuto.Customer.Customer customer = 1;
+}
+
+message DeleteCustomerRequest
+{
+    string id = 1;
+}
+
+message UpdateCustomerRequest {
+    CarAuto.Customer.Customer customer = 1;
+}
+
+message CreateCustomerRequest {
+    CarAuto.Customer.Customer customer = 1;
+}
+
+message CreateCustomerResponse {
+    string id = 1;
+}
+
+message GetAllCustomersResponse
+{
+    repeated CarAuto.Customer.Customer customers = 1;
+}
+
+service CustomerService {
+    rpc GetCustomer (GetCustomerRequest) returns (GetCustomerResponse);
+    rpc CreateCustomer (CreateCustomerRequest) returns (CreateCustomerResponse);
+    rpc DeleteCustomer (DeleteCustomerRequest) returns (google.protobuf.Empty);
+    rpc UpdateCustomer (UpdateCustomerRequest) returns (google.protobuf.Empty);
+    rpc GetAllCustomer (google.protobuf.Empty) returns (GetAllCustomersResponse);
+    rpc GetCurrentCustomer (google.protobuf.Empty) returns (GetCustomerResponse);
+}

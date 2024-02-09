@@ -1,0 +1,27 @@
+version: '3.4'
+
+services:
+  db:
+    image: postgres
+    restart: always
+    container_name: vehicleservicedb
+    ports:
+    - 5435:5432
+    environment:
+      POSTGRES_DB: userdb
+      POSTGRES_HOST_AUTH_METHOD: "trust"
+
+  carauto.vehicleservice:
+    image: ${DOCKER_REGISTRY-}carautovehicleservice
+    hostname: vehicle
+    ports:
+    - 5100:5000
+    - 5280:80
+    build:
+      context: .
+      dockerfile: VehicleService/Dockerfile
+
+networks:
+  default:
+    external:
+      name: carauto-network
