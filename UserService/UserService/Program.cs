@@ -16,6 +16,8 @@ var config = builder.Configuration;
 foreach (var jsonFilename in Directory.EnumerateFiles("Config", "*.json", SearchOption.AllDirectories))
     config.AddJsonFile(jsonFilename);
 
+config.AddEnvironmentVariables();
+
 var services = builder.Services;
 
 services.RegisterServices<UserDbContext>(config);

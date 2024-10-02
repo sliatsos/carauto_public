@@ -4,8 +4,8 @@ services:
   carauto.ui:
     image: ${DOCKER_REGISTRY-}carautoui
     ports:
-    - 5002:443
-    - 5182:80
+    - 6002:443
+    - 6182:80
     build:
       context: .
       dockerfile: CarAuto.UI/Dockerfile

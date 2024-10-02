@@ -246,7 +246,7 @@ services:
     image: pantsel/konga
     container_name: konga
     ports:
-      - 1337:1337
+      - 1345:1337
     links:
       - kong:kong
     environment:
@@ -297,6 +297,19 @@ services:
       - 7070:7070
     depends_on:
       - db
+
+  #######################################
+  # fake-smtp-server
+  #######################################  
+  smtp4dev:
+    container_name: fake-smtp-server
+    image: haravich/fake-smtp-server:latest
+    restart: always
+    ports:
+      - '1025:1025'
+      - '1080:1080'
+    networks:
+      carauto:   
 
 networks:
   carauto:

@@ -1,0 +1,7 @@
+{
+  "Kafka": {
+    "BootstrapServers": "kafka:9092",
+    "GroupId": "Order",
+    "Topic": "dev.general.orders.erp.json"
+  }
+}

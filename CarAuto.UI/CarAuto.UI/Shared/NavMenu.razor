@@ -1,5 +1,9 @@
 ﻿<MudNavMenu>
-    <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
+    <AuthorizeView>
+        <NotAuthorized>
+            <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
+        </NotAuthorized>
+    </AuthorizeView>
     <AuthorizeView Policy="IsUser">
 @*         <MudNavLink Href="counter" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Add">Counter</MudNavLink> *@
         <MudNavGroup Title="Vehicle Orders" Expanded="false">
@@ -7,6 +11,7 @@
             <MudNavLink Href="approvedvehicleorders" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">Approved</MudNavLink>
             <MudNavLink Href="invoicedvehicleorders" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">Invoiced</MudNavLink>
         </MudNavGroup>
+        <MudNavLink Href="customervehicles" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">Vehicles</MudNavLink>
     </AuthorizeView>
     <AuthorizeView Policy="IsAdmin">
 @*         <MudNavLink Href="fetchdata" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">Fetch data</MudNavLink> *@

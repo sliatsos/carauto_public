@@ -8,6 +8,7 @@ using CarAuto.VehicleService.DAL.Context;
 using CarAuto.VehicleService.Services;
 using CarAuto.VehicleService.SignalR;
 using CarAuto.VehicleService.Worker;
+using Microsoft.AspNetCore.SignalR;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Host.AddSerilog();
@@ -16,6 +17,8 @@ var config = builder.Configuration;
 
 foreach (var jsonFilename in Directory.EnumerateFiles("Config", "*.json", SearchOption.AllDirectories))
     config.AddJsonFile(jsonFilename);
+
+config.AddEnvironmentVariables();
 
 var services = builder.Services;
 
@@ -27,7 +30,10 @@ services.AddTransient<IProducerFactory, ProducerFactory>();
 services.AddTransient<IOptionLogic, OptionLogic>();
 services.AddHostedService<VehicleWorker>();
 services.AddSignalR();
-
+services.Configure<HubOptions>(options =>
+{
+    options.MaximumReceiveMessageSize = null;
+});
 var app = builder.Build();
 
 CommonMiddleware.MapGrpcServicesEndpointsEvent += (endpoints) =>

@@ -30,7 +30,7 @@
                 <MudStack Row="true" Spacing="3">
                     <MudStack Spacing="3">
                         <MudTextField T="string" @bind-Value="@_model.UserName" Label="Username" Required="true" RequiredError="Username is required!" />
-                        <MudTextField T="string" @bind-Value="@_model.Password" Label="Password" Required="true" RequiredError="Password is required!" />
+                        <MudTextField T="string" @bind-Value="@_model.Password" Label="Password" Required="true" RequiredError="Password is required!" InputType="@PasswordInput" Adornment="Adornment.End" AdornmentIcon="@PasswordInputIcon" OnAdornmentClick="PasswordClick" AdornmentAriaLabel="Show Password" />
                         @*                    <MudSelect T="ContactType" SelectedValues="_selectedPhoneTypes" SelectedValuesChanged="SelectedContactTypeChanged" Label="Customer Type">
                         <MudSelectItem T="ContactType" Value="@(ContactType.Company)">@(nameof(ContactType.Company))</MudSelectItem>
                         <MudSelectItem T="ContactType" Value="@(ContactType.Person)">@(nameof(ContactType.Person))</MudSelectItem>
@@ -84,6 +84,12 @@
 
     private string GetRegistrationVisibility => UserId != null ? "display: none" : string.Empty;
     private string GetUpdateVisibility => UserId == null ? "display: none" : string.Empty;
+
+    #region Password
+    bool isShow;
+    InputType PasswordInput = InputType.Password;
+    string PasswordInputIcon = Icons.Material.Filled.VisibilityOff;
+    #endregion Password
 
     private async Task OnUpdateAsync()
     {
@@ -141,5 +147,21 @@
             _selectedPhoneTypes.Add(selectedType);
         }
         _model.PhoneType = _selectedPhoneTypes.First();
+    }
+
+    void PasswordClick()
+    {
+        @if (isShow)
+        {
+            isShow = false;
+            PasswordInputIcon = Icons.Material.Filled.VisibilityOff;
+            PasswordInput = InputType.Password;
+        }
+        else
+        {
+            isShow = true;
+            PasswordInputIcon = Icons.Material.Filled.Visibility;
+            PasswordInput = InputType.Text;
+        }
     }
 }

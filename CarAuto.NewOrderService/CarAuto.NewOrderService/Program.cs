@@ -9,6 +9,7 @@ using CarAuto.OrderService.Business.Interfaces;
 using CarAuto.OrderService.DAL.Context;
 using CarAuto.OrderService.DAL.DTOs;
 using CarAuto.OrderService.Services;
+using Microsoft.AspNetCore.SignalR;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Host.AddSerilog();
@@ -17,6 +18,8 @@ var config = builder.Configuration;
 
 foreach (var jsonFilename in Directory.EnumerateFiles("Config", "*.json", SearchOption.AllDirectories))
     config.AddJsonFile(jsonFilename);
+
+config.AddEnvironmentVariables();
 
 var services = builder.Services;
 
@@ -30,6 +33,10 @@ services.AddTransient<IProducerFactory, ProducerFactory>();
 services.AddSingleton(numberConfig);
 services.AddHostedService<OrderWorker>();
 services.AddSignalR();
+services.Configure<HubOptions>(options =>
+{
+    options.MaximumReceiveMessageSize = null;
+});
 
 var app = builder.Build();
 

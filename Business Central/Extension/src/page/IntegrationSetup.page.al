@@ -27,23 +27,20 @@ page 50100 "CAR Integration Setup"
                         HelperL.GetClusterId(Rec);
                     end;
                 }
-                field("Cluster Id"; Rec."Cluster Id")
-                {
-                    AboutTitle = 'About Cluster Id';
-                    AboutText = 'The Cluster Id keeps the Kafka Cluster identification number which is needed for the communication. It will be automatically populated when the Base Uri is populated and the Enabled is set to true.';
-                }
                 field("Base URI"; Rec."Base URI")
                 {
                     AboutTitle = 'About Base URI';
                     AboutText = 'The Base Uri is the location of the kafka cluster.';
                 }
-                field("Setup Producer Topic"; Rec."Setup Producer Topic")
+                group(GeneralAdvanced)
                 {
-                    AboutTitle = 'About Setup Producer Topic';
-                    AboutText = 'It is used to publish messages to kafka when a record has been modified in business central.';
-                }
-                field("Role Id"; Rec."Role Id")
-                {
+                    Visible = IsAdvancedG;
+                    ShowCaption = false;
+                    field("Cluster Id"; Rec."Cluster Id")
+                    {
+                        AboutTitle = 'About Cluster Id';
+                        AboutText = 'The Cluster Id keeps the Kafka Cluster identification number which is needed for the communication. It will be automatically populated when the Base Uri is populated and the Enabled is set to true.';
+                    }
                 }
             }
             group("Data Synchronization")
@@ -56,15 +53,25 @@ page 50100 "CAR Integration Setup"
                     AboutTitle = 'About Consumer Topic';
                     AboutText = 'The topic in which we will listen for changes that we have to integrate into the system. It must be manually set.';
                 }
-                field("Consumer Instance Id"; Rec."Consumer Instance Id")
+                field("Setup Producer Topic"; Rec."Setup Producer Topic")
                 {
-                    AboutTitle = 'About Consumer Instance Id';
-                    AboutText = 'Internal Functionality';
+                    AboutTitle = 'About Setup Producer Topic';
+                    AboutText = 'It is used to publish messages to kafka when a record has been modified in business central.';
                 }
-                field("Consumer Id"; Rec."Consumer Id")
+                group("Data Synchronization Advanced")
                 {
-                    AboutTitle = 'About Consumer Id';
-                    AboutText = 'Internal Functionality';
+                    Visible = IsAdvancedG;
+                    ShowCaption = false;
+                    field("Consumer Instance Id"; Rec."Consumer Instance Id")
+                    {
+                        AboutTitle = 'About Consumer Instance Id';
+                        AboutText = 'Internal Functionality';
+                    }
+                    field("Consumer Id"; Rec."Consumer Id")
+                    {
+                        AboutTitle = 'About Consumer Id';
+                        AboutText = 'Internal Functionality';
+                    }
                 }
             }
             group(Ordering)
@@ -86,18 +93,23 @@ page 50100 "CAR Integration Setup"
                     AboutTitle = 'About Producer Topic';
                     AboutText = 'The topic in which we will push changes that we have to integrate into the system. It must be manually set.';
                 }
+                group("Ordering Advanced")
+                {
+                    Visible = IsAdvancedG;
+                    ShowCaption = false;
 
-                field("Order Consumer Instance Id"; Rec."Order Consumer Instance Id")
-                {
-                    Caption = 'Consumer Instance Id';
-                    AboutTitle = 'About Consumer Instance Id';
-                    AboutText = 'Internal Functionality';
-                }
-                field("Order Consumer Id"; Rec."Order Consumer Id")
-                {
-                    Caption = 'Consumer Id';
-                    AboutTitle = 'About Consumer Id';
-                    AboutText = 'Internal Functionality';
+                    field("Order Consumer Instance Id"; Rec."Order Consumer Instance Id")
+                    {
+                        Caption = 'Consumer Instance Id';
+                        AboutTitle = 'About Consumer Instance Id';
+                        AboutText = 'Internal Functionality';
+                    }
+                    field("Order Consumer Id"; Rec."Order Consumer Id")
+                    {
+                        Caption = 'Consumer Id';
+                        AboutTitle = 'About Consumer Id';
+                        AboutText = 'Internal Functionality';
+                    }
                 }
             }
         }
@@ -142,29 +154,26 @@ page 50100 "CAR Integration Setup"
                 end;
             }
 
-            action("Test Read Kafka")
+            action(Advanced)
             {
-                Caption = 'Test Read Kafka';
+                Caption = 'Advanced';
                 Promoted = true;
                 PromotedIsBig = true;
                 PromotedCategory = Process;
                 PromotedOnly = true;
-                Enabled = Rec.Enabled;
-                RunObject = codeunit "CAR Kafka Receiver";
-            }
+                AboutTitle = 'Advanced';
+                AboutText = 'It will hide or show the advanced settings of the page';
 
-            action(Tenants)
-            {
-                Caption = 'Tenants';
-                Promoted = true;
-                PromotedIsBig = true;
-                PromotedCategory = Process;
-                PromotedOnly = true;
-                RunObject = page "CAR Tenants";
-                RunPageMode = Edit;
+                trigger OnAction()
+                begin
+                    IsAdvancedG := not IsAdvancedG;
+                end;
             }
         }
     }
+
+    var
+        IsAdvancedG: Boolean;
 
     trigger OnOpenPage()
     begin

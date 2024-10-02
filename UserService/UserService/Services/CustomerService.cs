@@ -36,14 +36,14 @@ namespace CarAuto.UserService.Services
             return await _customerLogic.GetCustomerAsync(request);
         }
 
-        [Authorize(AuthorizationPolicies.IsUser)]
+        [Authorize(Roles="admin,user")]
         public override async Task<Empty> UpdateCustomer(UpdateCustomerRequest request, ServerCallContext context)
         {
             await _customerLogic.UpdateCustomerAsync(request);
             return new Empty();
         }
 
-        [Authorize(AuthorizationPolicies.IsUser)]
+        [Authorize(AuthorizationPolicies.IsAdmin)]
         public override async Task<Empty> DeleteCustomer(DeleteCustomerRequest request, ServerCallContext context)
         {
             await _customerLogic.DeleteCustomerAsync(request);

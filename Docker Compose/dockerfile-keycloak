@@ -1,4 +1,4 @@
-FROM jboss/keycloak:16.1.1
+FROM quay.io/keycloak/keycloak:16.1.1
 
 ## add json remote claim plugin https://github.com/groupe-sii/keycloak-json-remote-claim
 ADD ./keycloak-plugins/json-remote-claim/changeprovider.xsl /opt/jboss/keycloak/json-remote-claim/

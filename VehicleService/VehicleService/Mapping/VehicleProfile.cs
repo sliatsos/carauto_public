@@ -54,5 +54,10 @@ public class VehicleProfile : Profile
 
         CreateMap<Timestamp, DateTime>()
             .ConvertUsing(e => e != null ? e.ToDateTime().ToUniversalTime() : DateTime.MinValue);
+
+        CreateMap<byte[], string>()
+            .ConvertUsing(e => Convert.ToBase64String(e));
+        CreateMap<string, byte[]>()
+            .ConvertUsing(e => Convert.FromBase64String(e));
     }
 }

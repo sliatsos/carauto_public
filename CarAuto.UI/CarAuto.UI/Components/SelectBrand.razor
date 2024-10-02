@@ -6,7 +6,7 @@
 @using Grpc.Core
 
 <MudSelect T="Brand" SelectedValues="_selectedBrands" SelectedValuesChanged="SelectedBrandChangedAsync" Label="Brand">
-    @foreach (var brand in GetBrands())
+    @foreach (var brand in _allBrands)
     {
         <MudSelectItem T="Brand" Value="@(brand)">@($"{brand.DisplayName}")</MudSelectItem>
     }
@@ -17,9 +17,11 @@
     [Parameter] public Brand InitialValue { get; set; }
     [Inject] private IGrpcClientWrapper _grpcClientWrapper { get; set; }
     private List<Brand> _selectedBrands = new();
+    private RepeatedField<Brand> _allBrands;
 
     protected override Task OnInitializedAsync()
     {
+        _allBrands = GetBrands();
         _selectedBrands.Add(InitialValue);
         return base.OnInitializedAsync();
     }

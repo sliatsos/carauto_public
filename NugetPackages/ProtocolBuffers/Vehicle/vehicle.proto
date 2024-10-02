@@ -17,6 +17,7 @@ message Model
 	int32 model_year = 4;
 	repeated Option options = 5;
 	string brand_id = 6;
+	string image = 7;
 }
 
 message Mileage
@@ -44,6 +45,7 @@ message Brand
 	string id = 1;
 	string code = 2;
 	string display_name = 3;
+	string image = 4;
 }
 
 message Vehicle

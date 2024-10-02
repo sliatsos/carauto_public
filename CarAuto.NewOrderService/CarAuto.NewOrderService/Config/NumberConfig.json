@@ -1,7 +1,7 @@
 {
   "Number": {
-    "Initial": "TST-00100",
+    "Initial": "VESQ-00200",
     "IncrementBy": "1",
-    "FixedPart": "TST-"
+    "FixedPart": "VESQ-"
   }
 }

@@ -106,13 +106,13 @@
 
     private async Task HandleFileChangedAsync(IBrowserFile file)
     {
-        var resizedImageFile = await file.RequestImageFileAsync("image/jpg",
+        var resizedImageFile = await file.RequestImageFileAsync(file.ContentType,
             200, 200);
         var buffer = new byte[resizedImageFile.Size];
         await resizedImageFile.OpenReadStream().ReadAsync(buffer);
-        //_model.Image = Convert.ToBase64String(buffer);
+        _model.Image = Convert.ToBase64String(buffer);
 
-        //_image = $"data:image/jpeg;base64,{_model.Image}";
+        _image = $"data:{file.ContentType};base64,{_model.Image}";
     }
 
     protected override async Task OnParametersSetAsync()
@@ -132,7 +132,10 @@
             nameof(BrandService.BrandServiceClient.GetBrand),
             new Metadata());
 
-        //_image = $"data:image/jpeg;base64,{response.Brand.Image}";
+        if (!string.IsNullOrEmpty(response.Brand.Image))
+        {
+            _image = $"data:image/jpeg;base64,{response.Brand.Image}";
+        }
         _model = response.Brand;
         _success = true;
     }

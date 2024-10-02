@@ -25,6 +25,7 @@
               LoadingProgressColor="Color.Warning">
         <HeaderContent>
             <MudTh Style="display: none">Id</MudTh>
+            <MudTh>Image</MudTh>
             <MudTh>Code</MudTh>
             <MudTh>Description</MudTh>
             <MudTh>Brand</MudTh>
@@ -32,6 +33,16 @@
         </HeaderContent>
         <RowTemplate>
             <MudTd DataLabel="Id" Style="display: none">@context.Id</MudTd>
+            <MudTd DataLabel="Image">
+                @if (!string.IsNullOrEmpty(context.Image))
+                {
+                    <MudAvatar Image="@context.Image" Size="Size.Large"></MudAvatar>
+                }
+                else
+                {
+                    <MudIcon Icon="@Icons.Material.Filled.BrightnessHigh" Size="Size.Large" Color="Color.Info"></MudIcon>
+                }
+            </MudTd>
             <MudTd DataLabel="Code">@context.Code</MudTd>
             <MudTd DataLabel="Description">@context.Description</MudTd>
             <MudTd DataLabel="Brand">@GetBrandDescription(context.BrandId)</MudTd>
@@ -49,7 +60,7 @@
     </MudTable>
 </MudStack>
 
-@code {
+    @code {
 
     private IEnumerable<Model> _Models;
     private MudTable<Model> _table;
@@ -144,7 +155,20 @@
                 nameof(ModelService.ModelServiceClient.GetAllModels),
                 new Metadata());
 
-        _Models = allUsersResponse.Models;
+        _Models = allUsersResponse.Models.Select(e =>
+        {
+            var model = new Model
+            {
+                Id = e.Id,
+                Code = e.Code,
+                Description = e.Description,
+                ModelYear = e.ModelYear,
+                BrandId = e.BrandId,
+                Image = string.IsNullOrEmpty(e.Image) ? string.Empty : $"data:image/jpeg;base64,{e.Image}",
+            };
+            model.Options.AddRange(e.Options);
+            return model;
+        });
 
         _loading = false;
         return new TableData<Model>

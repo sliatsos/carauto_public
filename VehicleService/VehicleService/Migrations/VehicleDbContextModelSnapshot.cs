@@ -47,6 +47,11 @@ namespace CarAuto.VehicleService.Migrations
                         .HasColumnType("text")
                         .HasColumnName("display_name");
 
+                    b.Property<byte[]>("Image")
+                        .IsRequired()
+                        .HasColumnType("bytea")
+                        .HasColumnName("image");
+
                     b.Property<DateTime>("ModifiedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("modified_at");
@@ -95,6 +100,11 @@ namespace CarAuto.VehicleService.Migrations
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("description");
+
+                    b.Property<string>("Image")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("image");
 
                     b.Property<int>("ModelYear")
                         .HasColumnType("integer")

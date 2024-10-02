@@ -10,6 +10,7 @@ ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["CarAuto.InvoiceWorker/CarAuto.InvoiceWorker.csproj", "CarAuto.InvoiceWorker/"]
 COPY ["CarAuto.NewOrderService/CarAuto.NewOrderService.csproj", "CarAuto.NewOrderService/"]
+RUN dotnet nuget add source "http://host.docker.internal:8196/v3/index.json" --name "local_publish"
 RUN dotnet restore "./CarAuto.InvoiceWorker/./CarAuto.InvoiceWorker.csproj"
 COPY . .
 WORKDIR "/src/CarAuto.InvoiceWorker"

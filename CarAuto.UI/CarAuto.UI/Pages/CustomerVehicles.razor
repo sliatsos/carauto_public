@@ -1,0 +1,121 @@
+﻿@page "/customervehicles"
+@using CarAuto.GrpcClientWrapper
+@using CarAuto.Protos.Customer
+@using CarAuto.Protos.Salesperson
+@using CarAuto.Protos.User
+@using CarAuto.Protos.Vehicle;
+@using Google.Protobuf.WellKnownTypes
+@using Grpc.Core
+@attribute [Authorize(Policy = "IsUser")]
+@inject IGrpcClientWrapper GrpcClientWrapper
+
+<h3>Vehicles</h3>
+
+<MudStack Spacing="3">
+    <MudTable ServerData="state => LoadDataAsync()"
+              ReadOnly="false"
+              EditButtonPosition="TableEditButtonPosition.End"
+              Hover="true"
+              FixedHeader="true"
+              @ref="_table"
+              Loading="@_loading"
+              LoadingProgressColor="Color.Warning">
+        <HeaderContent>
+            <MudTh Style="display: none">Id</MudTh>
+            <MudTh>Vin</MudTh>
+            <MudTh>Brand</MudTh>
+            <MudTh>Model</MudTh>
+            <MudTh>License Number</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Id" Style="display: none">@context.Id</MudTd>
+            <MudTd DataLabel="Username">@context.Vin</MudTd>
+            <MudTd DataLabel="First Name">@GetBrandDescription(context.BrandId)</MudTd>
+            <MudTd DataLabel="Last Name">@GetModelDescription(context.ModelId)</MudTd>
+            <MudTd DataLabel="Email">@context.LicenseNo</MudTd>
+            <MudTd>
+                <MudStack Spacing="3" Row="true">
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="() => EditVehicleAsync(context)" />
+                </MudStack>
+            </MudTd>
+        </RowTemplate>
+        <PagerContent>
+            <MudTablePager />
+        </PagerContent>
+    </MudTable>
+</MudStack>
+
+@code {
+
+    private IEnumerable<Vehicle> _vehicles;
+    private MudTable<Vehicle> _table;
+    private bool _loading = true;
+
+    [Inject] private IDialogService _dialogService { get; set; }
+
+    [Inject] private NavigationManager _navigationManager { get; set; }
+
+    [Inject] private ISnackbar _snackbar { get; set; }
+
+    private async Task EditVehicleAsync(Vehicle vehicle)
+    {
+        _navigationManager.NavigateTo($"{nameof(ManageCustomerVehicle)}/{vehicle.Id}");
+    }
+
+    private string GetBrandDescription(string brandId)
+    {
+        if (string.IsNullOrEmpty(brandId))
+        {
+            return string.Empty;
+        }
+
+        var brandResponse =
+            GrpcClientWrapper.CallGrpcService<BrandService.BrandServiceClient, GetBrandRequest, GetBrandResponse>(
+                new GetBrandRequest
+                {
+                    Id = brandId,
+                },
+                nameof(BrandService.BrandServiceClient.GetBrand),
+                new Metadata());
+
+        return brandResponse?.Brand?.DisplayName;
+    }
+
+    private string GetModelDescription(string modelId)
+    {
+        if (string.IsNullOrEmpty(modelId))
+        {
+            return string.Empty;
+        }
+
+        var modelResponse =
+            GrpcClientWrapper.CallGrpcService<ModelService.ModelServiceClient, GetModelRequest, GetModelResponse>(
+                new GetModelRequest
+                    {
+                        Id = modelId,
+                    },
+                nameof(ModelService.ModelServiceClient.GetModel),
+                new Metadata());
+
+        return modelResponse?.Model?.Description;
+    }
+
+    private async Task<TableData<Vehicle>> LoadDataAsync()
+    {
+        _loading = true;
+        var allUsersResponse =
+            await GrpcClientWrapper.CallGrpcServiceAsync<VehicleService.VehicleServiceClient, Empty, GetAllVehiclesResponse>(
+                new Empty(),
+                nameof(VehicleService.VehicleServiceClient.GetAllVehicles),
+                new Metadata());
+
+        _vehicles = allUsersResponse.Vehicles;
+
+        _loading = false;
+        return new TableData<Vehicle>
+            {
+                Items = _vehicles,
+                TotalItems = _vehicles.Count(),
+            };
+    }
+}

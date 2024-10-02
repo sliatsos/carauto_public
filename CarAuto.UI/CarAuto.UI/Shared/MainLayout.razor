@@ -29,6 +29,8 @@
 <MudLayout>
     <MudAppBar Elevation="0">
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
+        <MudSpacer />    
+        <MudImage Src="Images\carflow-logo.png" ObjectFit="ObjectFit.ScaleDown"/>
         <MudSpacer />
         <AccessControl />
         @*         <MudIconButton Icon="@Icons.Custom.Brands.MudBlazor" Color="Color.Inherit" Link="https://mudblazor.com/" Target="_blank" />
@@ -36,7 +38,7 @@
     </MudAppBar>
     <MudDrawer @bind-Open="_drawerOpen" Elevation="1">
         <MudDrawerHeader>
-            <MudText Typo="Typo.h6">CarAuto.UI</MudText>
+            <MudText Typo="Typo.h6" />
         </MudDrawerHeader>
         <NavMenu />
     </MudDrawer>

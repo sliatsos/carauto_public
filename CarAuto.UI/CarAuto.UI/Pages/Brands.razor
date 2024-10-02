@@ -6,7 +6,7 @@
 @attribute [Authorize(Policy = "IsAdmin")]
 @inject IGrpcClientWrapper GrpcClientWrapper
 
-<h3>Salespeople</h3>
+<h3>Brands</h3>
 <MudStack Spacing="3">
     <MudStack Spacing="3" Row="true">
         <MudIconButton Icon="@Icons.Material.Filled.Add" Size="Size.Medium" Color="Color.Primary" Href="@nameof(ManageBrand)" />
@@ -21,15 +21,22 @@
               LoadingProgressColor="Color.Warning">
         <HeaderContent>
             <MudTh Style="display: none">Id</MudTh>
-            @*<MudTh>Image</MudTh>*@
+            <MudTh>Image</MudTh>
             <MudTh>Code</MudTh>
             <MudTh>Name</MudTh>
         </HeaderContent>
         <RowTemplate>
             <MudTd DataLabel="Id" Style="display: none">@context.Id</MudTd>
-@*            <MudTd DataLabel="Image">
-                <MudAvatar Image="@context.Image" Size="Size.Large"></MudAvatar>
-            </MudTd>*@
+           <MudTd DataLabel="Image">
+               @if (!string.IsNullOrEmpty(context.Image))
+               {
+                    <MudAvatar Image="@context.Image" Size="Size.Large"></MudAvatar>
+                }
+                else
+                {
+                    <MudIcon Icon="@Icons.Material.Filled.DirectionsCarFilled" Size="Size.Large" Color="Color.Info"></MudIcon>
+                }
+            </MudTd>
             <MudTd DataLabel="Code">@context.Code</MudTd>
             <MudTd DataLabel="Name">@context.DisplayName</MudTd>
             <MudTd>
@@ -105,7 +112,7 @@
                 Code = e.Code,
                 DisplayName = e.DisplayName,
                 Id = e.Id,
-                //Image = string.IsNullOrEmpty(e.Image) ? Icons.Material.Filled.Photo : $"data:image/jpeg;base64,{e.Image}",
+                Image = string.IsNullOrEmpty(e.Image) ? string.Empty : $"data:image/jpeg;base64,{e.Image}",
             });
 
         _loading = false;

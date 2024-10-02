@@ -10,7 +10,7 @@ using static CarAuto.Protos.Vehicle.VehicleService;
 
 namespace CarAuto.VehicleService.Services;
 
-//[Authorize(AuthorizationPolicies.IsAdmin)]
+[Authorize(Roles = "admin,user")]
 public class VehicleService : VehicleServiceBase
 {
     private readonly IVehicleLogic _vehicleLogic;
@@ -22,6 +22,7 @@ public class VehicleService : VehicleServiceBase
         _vehicleHub = vehicleHub ?? throw new ArgumentNullException(nameof(vehicleHub));
     }
 
+    [Authorize(AuthorizationPolicies.IsAdmin)]
     public override async Task<Empty> DeleteVehicle(DeleteVehicleRequest request, ServerCallContext context)
     {
         await _vehicleLogic.DeleteVehicleAsync(request);
@@ -43,12 +44,14 @@ public class VehicleService : VehicleServiceBase
         return await _vehicleLogic.SearchVehiclesAsync(request);
     }
 
+    [Authorize(AuthorizationPolicies.IsAdmin)]
     public override async Task<Empty> UpdateVehicle(UpdateVehicleRequest request, ServerCallContext context)
     {
         await _vehicleLogic.UpdateVehicleAsync(request);
         return new Empty();
     }
 
+    [Authorize(AuthorizationPolicies.IsAdmin)]
     public override async Task<CreateVehicleResponse> CreateVehicle(CreateVehicleRequest request, ServerCallContext context)
     {
         await _vehicleHub.Clients.All.SendAsync("CreateVehicle", request.Vehicle);

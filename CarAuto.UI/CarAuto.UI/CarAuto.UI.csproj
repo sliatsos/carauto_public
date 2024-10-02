@@ -16,8 +16,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="CarAuto.GrpcClientWrapper" Version="1.0.76" />
-    <PackageReference Include="CarAuto.ProtocolBuffers" Version="1.0.76" />
+    <PackageReference Include="CarAuto.GrpcClientWrapper" Version="2.0.0" />
+    <PackageReference Include="CarAuto.ProtocolBuffers" Version="2.0.0" />
     <PackageReference Include="FluentValidation" Version="11.5.1" />
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.5.1" />
     <PackageReference Include="Keycloak.AuthServices.Authentication" Version="1.5.1" />

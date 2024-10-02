@@ -154,13 +154,13 @@
 
     private async Task HandleFileChangedAsync(IBrowserFile file)
     {
-        var resizedImageFile = await file.RequestImageFileAsync("image/jpg",
+        var resizedImageFile = await file.RequestImageFileAsync(file.ContentType,
             200, 200);
         var buffer = new byte[resizedImageFile.Size];
         await resizedImageFile.OpenReadStream().ReadAsync(buffer);
-        //_model.Image = Convert.ToBase64String(buffer);
+        _model.Image = Convert.ToBase64String(buffer);
 
-        //_image = $"data:image/jpeg;base64,{_model.Image}";
+        _image = $"data:{file.ContentType};base64,{_model.Image}";
     }
 
     protected override async Task OnParametersSetAsync()
@@ -194,7 +194,10 @@
 
         _initialBrand = brandResponse.Brand;
 
-        //_image = $"data:image/jpeg;base64,{response.Customer.Image}";
+        if (!string.IsNullOrEmpty(response.Model.Image))
+        {
+            _image = $"data:image/jpeg;base64,{response.Model.Image}";
+        }
         //_initialUser = await GetUserAsync(_model.UserId);
         options = _model.Options.ToList();
         _success = true;

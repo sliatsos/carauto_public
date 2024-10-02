@@ -127,6 +127,7 @@ namespace CarAuto.UserService.Business
                         DisplayName = $"{user.FirstName}, {user.LastName}",
                         Phone = user.PhoneNumber,
                         Email = user.Email,
+                        UserId = userId.ToString(),
                     }
                 });
 

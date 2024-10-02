@@ -16,13 +16,12 @@
     <Authorized>
         <MudMenu>
             <ActivatorContent>
-                <MudAvatar  />
+                <MudAvatar Color="Color.Secondary">@char.ToUpper(context.User.Identity.Name[0])</MudAvatar>
             </ActivatorContent>
             <ChildContent>
                 <MudMenuItem Href="logout" Target="_self">Sign out (@context.User.Identity.Name)</MudMenuItem>
             </ChildContent>
         </MudMenu>
-        <a href="logout">Log out (@context.User.Identity.Name)</a>
     </Authorized>
     <NotAuthorized>
         <a href="login?redirectUri=@Uri.EscapeDataString(Navigation.BaseUri)">Log in</a>

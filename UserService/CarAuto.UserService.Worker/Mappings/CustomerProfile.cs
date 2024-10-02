@@ -4,6 +4,7 @@ using CarAuto.UserService.DAL.DTOs;
 using CarAuto.UserService.DAL.Entities;
 using SalespersonProto = CarAuto.Protos.Salesperson.Salesperson;
 using SalespersonEntity = CarAuto.UserService.DAL.Entities.Salesperson;
+using Google.Protobuf.WellKnownTypes;
 
 namespace CarAuto.UserService.Worker.Mappings
 {
@@ -43,6 +44,19 @@ namespace CarAuto.UserService.Worker.Mappings
                 .ConvertUsing(e => string.IsNullOrEmpty(e) ? string.Empty : e);
             CreateMap<string, string>()
                 .ConvertUsing(e => string.IsNullOrEmpty(e) ? string.Empty : e);
+
+            CreateMap<DateTime, Timestamp>()
+                .ConvertUsing(e => Timestamp.FromDateTime(e));
+
+            CreateMap<Timestamp, DateTime>()
+                .ConvertUsing(e => e == null ? DateTime.UtcNow : e.ToDateTime().ToUniversalTime());
+
+
+            CreateMap<Guid, string>().
+                ConvertUsing(e => e.ToString());
+
+            CreateMap<string, Guid>()
+                .ConvertUsing(e => string.IsNullOrEmpty(e) ? Guid.NewGuid() : Guid.Parse(e));
 
             CreateMap<byte[], string>()
                 .ConvertUsing(e => Convert.ToBase64String(e));

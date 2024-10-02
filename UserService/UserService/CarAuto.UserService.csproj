@@ -8,11 +8,12 @@
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <DockerComposeProjectPath>..\docker-compose.dcproj</DockerComposeProjectPath>
+    <ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CarAuto.CommonRegistration" Version="1.0.71" />
-    <PackageReference Include="CarAuto.ProtocolBuffers" Version="1.0.71" />
+    <PackageReference Include="CarAuto.CommonRegistration" Version="1.0.77" />
+    <PackageReference Include="CarAuto.ProtocolBuffers" Version="1.0.77" />
     <PackageReference Include="EFCore.NamingConventions" Version="6.0.0" />
     <PackageReference Include="Grpc.AspNetCore" Version="2.50.0" />
     <PackageReference Include="Grpc.AspNetCore.Server.Reflection" Version="2.50.0" />

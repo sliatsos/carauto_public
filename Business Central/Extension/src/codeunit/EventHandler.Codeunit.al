@@ -91,12 +91,22 @@ codeunit 50106 "CAR Event Handler"
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Quote to Order (Yes/No)", 'OnAfterSalesQuoteToOrderRun', '', false, false)]
     local procedure OnAfterSalesQuoteToOrderRunSub(var SalesHeader: Record "Sales Header"; var SalesHeader2: Record "Sales Header")
+    var
+        DocPrintL: Codeunit "Document-Print";
     begin
         SalesHeader2."CAR Quote Id" := SalesHeader.SystemId;
         SalesHeader2."CAR Kafka Status" := "CAR Kafka Status"::OrderCreated;
         SalesHeader2.Modify();
         Commit();
         Codeunit.Run(Codeunit::"CAR Kafka Sender");
+        Commit();
+        DocPrintL.EmailSalesHeader(SalesHeader2);
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Email Item", 'OnBeforeSend', '', false, false)]
+    local procedure OnBeforeSend(var EmailItem: Record "Email Item"; var HideMailDialog: Boolean; var MailManagement: Codeunit "Mail Management")
+    begin
+        HideMailDialog := true;
     end;
 
     local procedure CopyFromItem(var SalesLineP: Record "Sales Line"; SalesHeaderP: Record "Sales Header")
@@ -130,7 +140,7 @@ codeunit 50106 "CAR Event Handler"
         SalesLineP."Gen. Prod. Posting Group" := ItemL."Gen. Prod. Posting Group";
         SalesLineP."VAT Prod. Posting Group" := ItemL."VAT Prod. Posting Group";
         SalesLineP."Tax Group Code" := ItemL."Tax Group Code";
-        SalesLineP."Package Tracking No." := SalesHeaderP."Package Tracking No.";
+        //SalesLineP."Package Tracking No." := SalesHeaderP."Package Tracking No.";
         SalesLineP."Item Category Code" := ItemL."Item Category Code";
         SalesLineP.Nonstock := ItemL."Created From Nonstock Item";
         SalesLineP."Profit %" := ItemL."Profit %";

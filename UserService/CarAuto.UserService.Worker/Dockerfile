@@ -8,6 +8,7 @@ EXPOSE 443
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
 COPY ["CarAuto.UserService.Worker/CarAuto.UserService.Worker.csproj", "CarAuto.UserService.Worker/"]
+RUN dotnet nuget add source "http://host.docker.internal:8196/v3/index.json" --name "local_publish"
 RUN dotnet restore "CarAuto.UserService.Worker/CarAuto.UserService.Worker.csproj"
 COPY . .
 WORKDIR "/src/CarAuto.UserService.Worker"

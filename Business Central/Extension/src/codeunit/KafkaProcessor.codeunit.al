@@ -13,7 +13,7 @@ codeunit 50107 "CAR KafkaProcessor"
         JDocL.ReadFrom(InStreamL);
 
         if JDocL.Get('Action', TokenL) then
-            ActionL := ActionL.Names.IndexOf(TokenL.AsValue().AsText());
+            ActionL := ActionL.Names.IndexOf(TokenL.AsValue().AsText()) - 1;
         if JDocL.Get('Entity', TokenL) then
             EntityL := TokenL.AsValue().AsText();
         if JDocL.Get('Payload', TokenL) then
@@ -65,7 +65,8 @@ codeunit 50107 "CAR KafkaProcessor"
 
         if not RecordExistsL then begin
             JObjectP.Get('Code', TokenL);
-            ItemTemplL.Get('ITEM');
+            ItemTemplL.SetRange(Type, ItemTemplL.Type::Inventory);
+            ItemTemplL.FindFirst();
             ModelL."No." := TokenL.AsValue().AsCode();
             ModelL.SystemId := IdL;
             ModelL.Insert(true, true);

@@ -7,5 +7,7 @@ namespace CarAuto.VehicleService.DAL.Entities
         public string Code { get; set; }
 
         public string DisplayName { get; set; }
+
+        public byte[] Image { get; set; }
     }
 }

@@ -21,6 +21,8 @@ foreach (var jsonFilename in Directory.EnumerateFiles("Config", "*.json", Search
     config.AddJsonFile(jsonFilename);
 }
 
+config.AddEnvironmentVariables();
+
 // Add services to the container.
 builder.Services.AddValidatorsFromAssembly(Assembly.GetEntryAssembly());
 builder.Services.AddHttpContextAccessor();

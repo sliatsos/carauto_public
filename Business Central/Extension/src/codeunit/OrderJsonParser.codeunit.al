@@ -21,6 +21,7 @@ codeunit 50104 "CAR Order Json Parser"
         JValueL: JsonToken;
         JLinesArrayL: JsonArray;
         KafkaKeyL: Text;
+        DocPrintL: Codeunit "Document-Print";
     begin
         // Header
         if JSalesOrderP.Get('KafkaKey', JValueL) then
@@ -40,6 +41,7 @@ codeunit 50104 "CAR Order Json Parser"
             JLinesArrayL := JValueL.AsArray();
             FillNextSalesLineFromJson(JLinesArrayL, SalesHdrL, SalesLineL);
         end;
+        DocPrintL.EmailSalesHeader(SalesHdrL);
     end;
 
     local procedure FillNextSalesHeaderFromJson(JSalesOrderP: JsonObject; var SalesHdrP: Record "Sales Header"; KafkaKeyP: Text): Boolean

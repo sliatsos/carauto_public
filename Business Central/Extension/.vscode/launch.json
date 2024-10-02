@@ -7,7 +7,7 @@
             "type": "al",
             "environmentType": "Sandbox",
             "environmentName": "sandbox",
-            "server": "http://BC",
+            "server": "http://BCDev",
             "serverInstance": "BC",
             "tenant": "default",
             "authentication": "UserPassword",

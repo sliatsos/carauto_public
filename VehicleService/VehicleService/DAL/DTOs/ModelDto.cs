@@ -13,5 +13,7 @@
         public Guid BrandId { get; set; }
 
         public List<OptionDto> Options { get; set; } = new List<OptionDto>();
+
+        public string Image { get; set; } = string.Empty;
     }
 }

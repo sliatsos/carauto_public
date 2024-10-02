@@ -17,4 +17,6 @@ public class Model : BaseEntity
     public Guid? BrandId { get; set; }
 
     public List<Option> Options { get; set; } = new List<Option>();
+
+    public string Image { get; set; } = string.Empty;
 }

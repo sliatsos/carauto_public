@@ -1,0 +1,128 @@
+version: '3.7'
+
+services:
+
+  carauto.ui:
+    image: xcyanx2/carautoui:latest
+    restart: always
+    ports:
+    - 5002:443
+    - 5182:80
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=https://+:443;http://+:80
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=password
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+    volumes:
+        - ./certs:/https:ro
+
+  vehicleservice:
+    image: xcyanx2/carautovehicleservice:latest
+    container_name: vehicleservice
+    restart: always
+    hostname: vehicle
+    ports:
+      - "5280:80"
+      - "5100:5000"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=https://+:443;http://+:80,https://+5001,http://+5000
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=password
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+    volumes:
+        - ./certs:/https:ro
+    depends_on:
+        db.vehicleservice:
+          condition: service_started
+
+  db.vehicleservice:
+    image: postgres
+    restart: always
+    hostname: vehicleservicedb
+    container_name: vehicleservicedb
+    environment:
+      POSTGRES_DB: "vehicledb"
+      POSTGRES_HOST_AUTH_METHOD: "trust"
+      ALLOW_EMPTY_PASSWORD: "yes"
+    ports: 
+      - "5435:5432"
+
+  userservice:
+    image: xcyanx2/userservice:latest
+    hostname: user
+    restart: always
+    ports:
+    - 5000:5000
+    - 5180:80
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=https://+:443;http://+:80,https://+5001,http://+5000
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=password
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+    volumes:
+        - ./certs:/https:ro
+    depends_on:
+        db.userservice:
+          condition: service_started
+
+  userservice.worker:
+    container_name: userservice.worker
+    image: xcyanx2/carautouserserviceworker:latest
+    depends_on:
+        db.userservice:
+          condition: service_started
+
+  db.userservice:
+    image: postgres
+    restart: always
+    container_name: userservicedb
+    environment:
+      POSTGRES_DB: "userdb"
+      POSTGRES_HOST_AUTH_METHOD: "trust"
+      ALLOW_EMPTY_PASSWORD: "yes"
+    ports: 
+      - "5434:5432"
+
+  orderservice:
+    image: xcyanx2/carautoneworderservice:latest
+    hostname: orders
+    restart: always
+    ports:
+    - 5410:5000
+    - 5480:80
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=https://+:443;http://+:80,https://+5001,http://+5000
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=password
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+      - Number__IncrementBy=1
+      - Number__FixedPart=VESQ1-
+      - Number__Initial=VESQ1-0001
+    volumes:
+        - ./certs:/https:ro
+    depends_on:
+        db.orderservice:
+          condition: service_started
+
+  invoiceworker:
+    image: xcyanx2/carautoinvoiceworker:latest
+    hostname: invoices
+    depends_on:
+        db.orderservice:
+          condition: service_started
+
+  db.orderservice:
+    image: postgres
+    restart: always
+    container_name: orderservicedb
+    ports:
+    - 5440:5432
+    environment:
+      POSTGRES_DB: "orderdb"
+      POSTGRES_HOST_AUTH_METHOD: "trust"
+      ALLOW_EMPTY_PASSWORD: "yes"
+
+networks:
+  default:
+    external:
+      name: carauto-network

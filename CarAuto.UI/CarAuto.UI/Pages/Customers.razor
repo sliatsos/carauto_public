@@ -33,7 +33,14 @@
         <RowTemplate>
             <MudTd DataLabel="Id" Style="display: none">@context.Id</MudTd>
             <MudTd DataLabel="Image">
-                <MudAvatar Image="@context.Image" Size="Size.Large"></MudAvatar>
+                @if (!string.IsNullOrEmpty(context.Image))
+                {
+                    <MudAvatar Image="@context.Image" Size="Size.Large"></MudAvatar>
+                }
+                else
+                {
+                    <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Large" Color="Color.Info"></MudIcon>
+                }
             </MudTd>
             <MudTd DataLabel="Code">@context.Code</MudTd>
             <MudTd DataLabel="Name">@context.DisplayName</MudTd>
@@ -110,7 +117,7 @@
                 DisplayName = e.DisplayName,
                 Email = e.Email,
                 Id = e.Id,
-                Image = $"data:image/jpeg;base64,{e.Image}",
+                Image = string.IsNullOrEmpty(e.Image) ? string.Empty : $"data:image/jpeg;base64,{e.Image}",
             });
 
         _loading = false;

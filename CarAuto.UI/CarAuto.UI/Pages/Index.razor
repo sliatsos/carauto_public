@@ -1,9 +1,60 @@
 ﻿@page "/"
 
-<PageTitle>Index</PageTitle>
+<AuthorizeView>
+    <NotAuthorized>
+        <MudContainer>
+            <MudPaper Elevation="4" Class="mud-spacing">
+                <MudText Typo="Typo.h4" Class="mb-4">
+                    Welcome to CarFlow Solutions
+                </MudText>
 
-<h1>Hello, world!</h1>
+                <MudText Typo="Typo.body1" Class="mb-4">
+                    Revolutionize your dealership experience with CarFlow Solutions – where innovation meets automotive excellence. Our cutting-edge software is designed to seamlessly integrate and elevate every aspect of your dealership operations. From inventory management to customer engagement, we provide the tools you need to drive success in the fast-paced world of automotive retail.
+                </MudText>
 
-Welcome to your new app.
+                <MudText Typo="Typo.h6" Class="mb-2">
+                    Why Choose CarFlow Solutions?
+                </MudText>
 
-<SurveyPrompt Title="How is Blazor working for you?" />
+                <MudText Typo="Typo.body1" Class="mb-4">
+                    At CarFlow Solutions, we understand the unique challenges faced by modern car dealerships. Our software is crafted with precision to enhance efficiency, streamline processes, and boost your bottom line. Whether you're a small independent dealership or a large enterprise, our solutions are scalable and tailored to meet your specific needs.
+                </MudText>
+
+                <MudContainer Class="mb-4">
+                    <MudGrid>
+                        <!-- Features Section -->
+                        <MudItem xs=12 md=4>
+                            <MudText Icon="mdi-car" Title="Inventory Management">
+                                Effortlessly manage and showcase your vehicle inventory with our intuitive and comprehensive inventory management system.
+                            </MudText>
+                        </MudItem>
+
+                        <MudItem xs=12 md=4>
+                            <MudText Icon="mdi-cash-usd" Title="Sales Optimization">
+                                Maximize your sales potential with tools that empower your team to connect with customers, track leads, and close deals efficiently.
+                            </MudText>
+                        </MudItem>
+
+                        <MudItem xs=12 md=4>
+                            <MudText Icon="mdi-account-heart" Title="Customer Engagement">
+                                Build lasting relationships with your customers through personalized communication, feedback loops, and seamless digital experiences.
+                            </MudText>
+                        </MudItem>
+
+                        <!-- Additional Features -->
+
+                    </MudGrid>
+                </MudContainer>
+
+                <MudText Typo="Typo.h6" Class="mb-2">
+                    Experience the Future of Automotive Retail
+                </MudText>
+
+                <MudText Typo="Typo.body1" Class="mb-4">
+                    Join the ranks of successful dealerships that have embraced CarFlow Solutions. Explore the possibilities, drive growth, and exceed customer expectations. Your journey to automotive excellence starts here.
+                </MudText>
+            </MudPaper>
+        </MudContainer>
+    </NotAuthorized>
+</AuthorizeView>
+

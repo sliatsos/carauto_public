@@ -55,7 +55,7 @@ namespace CarAuto.UserService.Mappings
                 .ConvertUsing(e => Timestamp.FromDateTime(e));
 
             CreateMap<Timestamp, DateTime>()
-                .ConvertUsing(e => e.ToDateTime().ToUniversalTime());
+                .ConvertUsing(e => e == null ? DateTime.UtcNow : e.ToDateTime().ToUniversalTime());
 
 
             CreateMap<byte[], string>()
